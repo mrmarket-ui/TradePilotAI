@@ -1,11 +1,16 @@
 from fastapi import FastAPI
 
-from config.settings import APP_NAME, APP_VERSION
-from routes import health
+from database.database import Base, engine
+from models.user import User
 
-app = FastAPI(
-    title=APP_NAME,
-    version=APP_VERSION
-)
+from routes.v1 import health, auth
 
-app.include_router(health.router)
+app = FastAPI()
+
+Base.metadata.create_all(bind=engine)
+from sqlalchemy import inspect
+
+print("Tables:", inspect(engine).get_table_names())
+
+app.include_router(health.router, prefix="/api/v1", tags=["Health"])
+app.include_router(auth.router, prefix="/api/v1", tags=["Auth"])
