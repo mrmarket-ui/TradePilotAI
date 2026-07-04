@@ -1,12 +1,4 @@
-from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    Boolean,
-    ForeignKey,
-    DateTime
-)
-
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
@@ -16,7 +8,7 @@ from database.database import Base
 class BrokerAccount(Base):
     __tablename__ = "broker_accounts"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
 
     user_id = Column(
         Integer,
@@ -36,10 +28,7 @@ class BrokerAccount(Base):
 
     last_sync = Column(DateTime, nullable=True)
 
-    created_at = Column(
-        DateTime,
-        default=datetime.utcnow
-    )
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship(
         "User",

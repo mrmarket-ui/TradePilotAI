@@ -1,6 +1,7 @@
+from datetime import datetime
+
 from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import relationship
-from datetime import datetime
 
 from database.database import Base
 
@@ -31,9 +32,16 @@ class User(Base):
 
     # AI Credits
     ai_credits = Column(Integer, default=20)
-    
+
+    # Relationships
     trades = relationship(
-    "Trade",
-    back_populates="user",
-    cascade="all, delete-orphan"
-)
+        "Trade",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+
+    broker_accounts = relationship(
+        "BrokerAccount",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
