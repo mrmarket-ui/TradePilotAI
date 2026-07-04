@@ -23,6 +23,10 @@ class Trade(Base):
         ForeignKey("users.id"),
         nullable=False
     )
+    created_at = Column(
+    DateTime,
+    default=datetime.utcnow
+)
     user = relationship(
     "User",
     back_populates="trades"

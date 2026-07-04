@@ -1,13 +1,10 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# For now we use SQLite (simple + fast for development)
-DATABASE_URL = "sqlite:///./tradepilot.db"
+# PostgreSQL
+DATABASE_URL = "postgresql+psycopg://postgres:neliswA%401977@localhost:5432/tradepilot"
 
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False}  # needed for SQLite
-)
+engine = create_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(
     autocommit=False,
@@ -16,6 +13,8 @@ SessionLocal = sessionmaker(
 )
 
 Base = declarative_base()
+
+
 def get_db():
     db = SessionLocal()
     try:
