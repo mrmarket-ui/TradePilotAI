@@ -1,8 +1,12 @@
 import MetaTrader5 as mt5
-from datetime import datetime
 
 
-def login(account: int, password: str, server: str):
+def connect(
+    account: int,
+    password: str,
+    server: str
+):
+
     if not mt5.initialize():
         return False, "MetaTrader5 failed to initialize."
 
@@ -20,23 +24,18 @@ def login(account: int, password: str, server: str):
     return True, "Connected"
 
 
-def shutdown():
+def disconnect():
     mt5.shutdown()
 
 
-def get_history(start: datetime, end: datetime):
-    deals = mt5.history_deals_get(start, end)
+def get_history(start, end):
+
+    deals = mt5.history_deals_get(
+        start,
+        end
+    )
 
     if deals is None:
         return []
 
     return deals
-
-
-def get_open_positions():
-    positions = mt5.positions_get()
-
-    if positions is None:
-        return []
-
-    return positions

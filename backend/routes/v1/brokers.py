@@ -7,8 +7,7 @@ from models.user import User
 from models.broker_account import BrokerAccount
 
 from schemas.broker import ConnectBroker, BrokerResponse
-
-from services.brokers.mt5 import login, shutdown
+from services.brokers.mt5 import connect, disconnect
 from services.security.encryption import encrypt
 
 router = APIRouter(
@@ -27,7 +26,7 @@ def connect_broker(
     current_user: User = Depends(get_current_user)
 ):
 
-    success, message = login(
+    success, message = connect(
     broker.account_number,
     broker.password,
     broker.server
@@ -54,4 +53,4 @@ def connect_broker(
     db.commit()
     db.refresh(account)
     return account
-    shutdown()
+    disconnect()

@@ -1,21 +1,66 @@
-def psychology_analysis(trade):
+from services.analytics.risk import (
+    calculate_max_drawdown,
+    calculate_expectancy,
+)
 
-    if not trade.emotion:
-        return "No emotion recorded."
 
-    emotion = trade.emotion.lower()
+def psychology_score(trades):
 
-    messages = {
-        "fear": "Fear often causes early exits.",
-        "greed": "Greed usually results in holding too long.",
-        "revenge": "Revenge trading is one of the fastest ways to lose consistency.",
-        "panic": "Panic leads to emotional decisions.",
-        "calm": "Excellent emotional control.",
-        "patient": "Patience is a professional trader's advantage.",
-        "confident": "Healthy confidence improves execution."
-    }
+    if not trades:
 
-    return messages.get(
-        emotion,
-        "Emotion recorded successfully."
+        return {
+            "discipline": 0,
+            "consistency": 0,
+            "patience": 0,
+            "overall": 0
+        }
+
+    expectancy = calculate_expectancy(trades)
+
+    drawdown = calculate_max_drawdown(trades)
+
+    discipline = max(
+        0,
+        100 - drawdown
     )
+
+    consistency = min(
+        100,
+        50 + expectancy
+    )
+
+    patience = 100
+
+    for trade in trades:
+
+        if (
+            trade.profit
+            and trade.profit < 0
+        ):
+            patience -= 1
+
+    patience = max(
+        0,
+        patience
+    )
+
+    overall = round(
+        (
+            discipline +
+            consistency +
+            patience
+        ) / 3,
+        2
+    )
+
+    return {
+
+        "discipline": round(discipline,2),
+
+        "consistency": round(consistency,2),
+
+        "patience": round(patience,2),
+
+        "overall": overall
+
+    }
