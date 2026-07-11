@@ -18,6 +18,8 @@ from routes.v1 import analytics_charts
 from routes.v1 import risk
 from routes.v1 import coach
 from routes.v1 import recommendations
+from routes.v1 import coach_v2
+
 
 # Trading Routes
 from routes.v1.trading import sync
@@ -173,6 +175,10 @@ app.include_router(
     prefix="/api/v1",
     tags=["AI Recommendations"]
 )
+app.include_router(
+    coach_v2.router,
+    prefix="/api/v1",
+)
 
 # ----------------------------------------
 # Root Endpoint
@@ -184,5 +190,5 @@ def root():
         "application": "TradePilot AI",
         "version": "1.0.0",
         "status": "running",
-        "docs": "/docs"
-    }
+        "docs": "/docs"   
+ }
