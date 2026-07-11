@@ -5,6 +5,8 @@ from schemas.analysis.behavior import BehaviorAnalysis
 from schemas.analysis.psychology import PsychologyAnalysis
 from schemas.analysis.performance import PerformanceAnalysis
 from schemas.analysis.consistency import ConsistencyAnalysis
+from schemas.analysis.trader_dna import TraderDNAAnalysis
+from schemas.analysis.recommendation import Recommendation
 
 
 class TraderAnalysis(BaseModel):
@@ -18,3 +20,7 @@ class TraderAnalysis(BaseModel):
     performance: PerformanceAnalysis
 
     consistency: ConsistencyAnalysis
+
+    trader_dna: TraderDNAAnalysis
+
+    recommendations: list[Recommendation]
