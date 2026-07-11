@@ -1,100 +1,165 @@
+﻿"""
+TradePilot AI unified dashboard service.
+
+Combines:
+- Trading statistics
+- Equity curve
+- Monthly performance
+- Symbol activity
+- Recent trades
+- AI dashboard intelligence
+"""
+
+from __future__ import annotations
+
+from collections import Counter
+from typing import Any
+
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 
-from models.trade import Trade
-from services.analytics.engine import calculate_statistics
+from services.analysis.loader import load_user_trades
+from services.analysis.service import AnalysisService
+from services.analytics.engine import calculate_statistics_from_trades
+from services.dashboard.intelligence.engine import (
+    generate_dashboard_intelligence,
+)
 
 
-def get_dashboard(db: Session, user_id: int):
+def _serialize_trade(trade: Any) -> dict:
+    """Convert a Trade model into dashboard-safe data."""
 
-    stats = calculate_statistics(
-        db=db,
-        user_id=user_id
+    return {
+        "id": trade.id,
+        "pair": trade.pair,
+        "direction": trade.direction,
+        "profit": round(float(trade.profit or 0), 2),
+        "lot_size": trade.lot_size,
+        "strategy": trade.strategy,
+        "opened_at": trade.opened_at,
+        "closed_at": trade.closed_at,
+    }
+
+
+def _build_equity_curve(trades: list) -> list[dict]:
+    """Build cumulative realized-profit equity data."""
+
+    closed_trades = sorted(
+        [
+            trade
+            for trade in trades
+            if trade.closed_at is not None
+        ],
+        key=lambda trade: trade.closed_at,
     )
 
-    trades = (
-        db.query(Trade)
-        .filter(Trade.user_id == user_id)
-        .all()
-    )
+    equity_curve = []
+    balance = 0.0
 
-    recent_trades = (
-        db.query(Trade)
-        .filter(Trade.user_id == user_id)
-        .order_by(Trade.closed_at.desc())
-        .limit(10)
-        .all()
-    )
+    for trade in closed_trades:
+        balance += float(trade.profit or 0)
 
-    symbols = (
-        db.query(
-            Trade.pair,
-            func.count(Trade.id)
-        )
-        .filter(Trade.user_id == user_id)
-        .group_by(Trade.pair)
-        .all()
-    )
+        equity_curve.append({
+            "date": trade.closed_at,
+            "balance": round(balance, 2),
+        })
 
-    monthly = {}
+    return equity_curve
+
+
+def _build_monthly_profit(trades: list) -> dict:
+    """Aggregate realized profit by calendar month."""
+
+    monthly_profit: dict[str, float] = {}
 
     for trade in trades:
-
         if trade.closed_at is None:
             continue
 
         month = trade.closed_at.strftime("%Y-%m")
 
-        monthly.setdefault(month, 0)
-
-        monthly[month] += trade.profit or 0
-
-    equity = []
-
-    balance = 0
-
-    closed = sorted(
-        [t for t in trades if t.closed_at],
-        key=lambda t: t.closed_at
-    )
-
-    for trade in closed:
-
-        balance += trade.profit or 0
-
-        equity.append(
-            {
-                "date": trade.closed_at,
-                "balance": round(balance, 2)
-            }
+        monthly_profit[month] = (
+            monthly_profit.get(month, 0.0)
+            + float(trade.profit or 0)
         )
 
     return {
+        month: round(profit, 2)
+        for month, profit in sorted(
+            monthly_profit.items()
+        )
+    }
 
-        "summary": stats,
 
-        "equity_curve": equity,
+def _build_symbol_activity(trades: list) -> list[dict]:
+    """Count genuine trades per market symbol."""
 
-        "monthly_profit": monthly,
+    counter = Counter(
+        trade.pair
+        for trade in trades
+        if trade.pair
+    )
 
-        "symbols": [
-            {
-                "pair": pair,
-                "count": count
-            }
-            for pair, count in symbols
-        ],
+    return [
+        {
+            "pair": pair,
+            "count": count,
+        }
+        for pair, count in counter.most_common()
+    ]
 
+
+def get_dashboard(
+    db: Session,
+    user_id: int,
+) -> dict:
+    """
+    Return the complete TradePilot AI dashboard payload.
+    """
+
+    trades = load_user_trades(
+        db=db,
+        user_id=user_id,
+    )
+
+    statistics = calculate_statistics_from_trades(
+        trades
+    )
+
+    analysis = AnalysisService.analyze(
+        db=db,
+        user_id=user_id,
+    )
+
+    intelligence = generate_dashboard_intelligence(
+        analysis
+    )
+
+    recent_trades = sorted(
+        trades,
+        key=lambda trade: (
+            trade.closed_at
+            or trade.opened_at
+            or trade.created_at
+        ),
+        reverse=True,
+    )[:10]
+
+    return {
+        "intelligence": intelligence,
+        "summary": statistics,
+        "equity_curve": _build_equity_curve(
+            trades
+        ),
+        "monthly_profit": _build_monthly_profit(
+            trades
+        ),
+        "symbols": _build_symbol_activity(
+            trades
+        ),
         "recent_trades": [
-            {
-                "id": trade.id,
-                "pair": trade.pair,
-                "direction": trade.direction,
-                "profit": trade.profit,
-                "lot_size": trade.lot_size,
-                "opened_at": trade.opened_at,
-                "closed_at": trade.closed_at
-            }
+            _serialize_trade(trade)
             for trade in recent_trades
-        ]
+        ],
+        "trader_dna": analysis.trader_dna,
+        "recommendations": analysis.recommendations[:5],
     }
