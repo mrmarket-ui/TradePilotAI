@@ -32,6 +32,7 @@ def chat_with_coach(
     )
 
     return generate_chat_reply(
-        message=payload.message,
-        context=context,
-    )
+    user_id=current_user.id,
+    message=payload.message,
+    context=context,
+)
