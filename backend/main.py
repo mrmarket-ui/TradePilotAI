@@ -26,7 +26,9 @@ from routes.v1.trading import sync
 from routes.v1.trading import analytics as trading_analytics
 from routes.v1.trading import signals
 from routes.v1.trading import memory
-
+from routes.v1 import trade_review
+from routes.v1 import weekly_review
+from routes.v1 import monthly_review
 
 app = FastAPI(
     title="TradePilot AI",
@@ -149,7 +151,10 @@ app.include_router(
     ai_chat.router,
     prefix="/api/v1",
 )
-
+app.include_router(
+    trade_review.router,
+    prefix="/api/v1",
+)
 
 @app.get("/", tags=["System"])
 def root():
@@ -159,3 +164,16 @@ def root():
         "status": "running",
         "docs": "/docs",
     }
+
+# Weekly AI Review
+app.include_router(
+    weekly_review.router,
+    prefix="/api/v1",
+)
+
+# Monthly AI Review
+app.include_router(
+    monthly_review.router,
+    prefix="/api/v1",
+)
+
