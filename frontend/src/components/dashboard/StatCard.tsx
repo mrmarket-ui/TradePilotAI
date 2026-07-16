@@ -1,0 +1,3 @@
+import type { LucideIcon } from "lucide-react"
+type Props={label:string;value:string;helper:string;icon:LucideIcon}
+export default function StatCard({label,value,helper,icon:Icon}:Props){return <div className="premium-card rounded-3xl p-5"><div className="flex items-center justify-between"><div className="grid size-11 place-items-center rounded-2xl bg-blue-500/10 text-blue-300"><Icon className="size-5"/></div><span className="text-xs text-emerald-400">Live</span></div><p className="mt-6 text-sm text-slate-500">{label}</p><p className="mt-2 text-3xl font-semibold tracking-tight">{value}</p><p className="mt-2 text-xs text-slate-500">{helper}</p></div>}

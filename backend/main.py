@@ -1,5 +1,5 @@
 ﻿from fastapi import FastAPI
-
+from fastapi.middleware.cors import CORSMiddleware
 from database.database import Base, engine
 
 # Import models so SQLAlchemy registers their tables
@@ -37,6 +37,18 @@ app = FastAPI(
         "Professional AI-powered trading journal, "
         "analytics and coaching platform."
     ),
+)
+allowed_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",    
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 Base.metadata.create_all(bind=engine)
@@ -176,4 +188,5 @@ app.include_router(
     monthly_review.router,
     prefix="/api/v1",
 )
+
 
