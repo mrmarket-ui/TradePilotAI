@@ -6,6 +6,7 @@ from database.database import Base, engine
 from models.user import User
 from models.trade import Trade
 from models.broker_account import BrokerAccount
+from models.strategy_profile import StrategyProfile
 
 # Core routes
 from routes.v1 import health
@@ -29,6 +30,7 @@ from routes.v1.trading import memory
 from routes.v1 import trade_review
 from routes.v1 import weekly_review
 from routes.v1 import monthly_review
+from routes.v1 import strategy_profiles
 
 app = FastAPI(
     title="TradePilot AI",
@@ -168,6 +170,12 @@ app.include_router(
     prefix="/api/v1",
 )
 
+
+# Strategy Brain
+app.include_router(
+    strategy_profiles.router,
+    prefix="/api/v1",
+)
 @app.get("/", tags=["System"])
 def root():
     return {
@@ -188,5 +196,7 @@ app.include_router(
     monthly_review.router,
     prefix="/api/v1",
 )
+
+
 
 
