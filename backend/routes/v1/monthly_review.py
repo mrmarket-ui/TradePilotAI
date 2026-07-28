@@ -2,7 +2,9 @@
 from sqlalchemy.orm import Session
 
 from database.database import get_db
-from dependencies.auth import get_current_user
+from dependencies.subscription import (
+    require_paid_plan,
+)
 from models.user import User
 
 from schemas.monthly_review.review import (
@@ -25,7 +27,9 @@ router = APIRouter(
 )
 def monthly_review(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_paid_plan,
+    ),
 ):
     return generate_monthly_review(
         db=db,

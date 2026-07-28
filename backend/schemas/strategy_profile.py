@@ -220,21 +220,36 @@ class SetupScoreRequest(BaseModel):
     user_emotion: str | None = None
 
 
+class ScoreComponentResponse(BaseModel):
+    name: str
+    weight: float
+    earned: float
+    passed: bool
+    explanation: str
+    matched: list[str] = Field(
+        default_factory=list,
+    )
+    missing: list[str] = Field(
+        default_factory=list,
+    )
+
+
 class SetupScoreResponse(BaseModel):
     strategy_id: int
     strategy_name: str
 
     overall_score: float
     verdict: str
+    confidence: float
 
-    matched_rules: list[str]
-    missing_rules: list[str]
+    components: list[ScoreComponentResponse]
 
-    matched_confirmations: list[str]
-    missing_confirmations: list[str]
+    strengths: list[str]
+    weaknesses: list[str]
 
-    risk_passed: bool
-    psychology_passed: bool
-    daily_limit_passed: bool
+    recommendation: str
 
-    explanation: str
+    metadata: dict = Field(
+        default_factory=dict,
+    )
+

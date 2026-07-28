@@ -1,11 +1,18 @@
-﻿from fastapi import APIRouter, Depends, HTTPException
+﻿from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+)
 from sqlalchemy.orm import Session
 
 from database.database import get_db
-from dependencies.auth import get_current_user
+from dependencies.subscription import (
+    require_paid_plan,
+)
 
-from models.user import User
 from models.trade import Trade
+from models.user import User
 
 from schemas.trade_review.review import (
     TradeReviewResponse,
@@ -14,6 +21,7 @@ from schemas.trade_review.review import (
 from services.trade_review.engine import (
     review_trade,
 )
+
 
 router = APIRouter(
     prefix="/trades",
@@ -28,9 +36,10 @@ router = APIRouter(
 def get_trade_review(
     trade_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_paid_plan,
+    ),
 ):
-
     trade = (
         db.query(Trade)
         .filter(
@@ -42,7 +51,9 @@ def get_trade_review(
 
     if trade is None:
         raise HTTPException(
-            status_code=404,
+            status_code=(
+                status.HTTP_404_NOT_FOUND
+            ),
             detail="Trade not found.",
         )
 

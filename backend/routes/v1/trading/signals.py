@@ -1,15 +1,29 @@
-from fastapi import APIRouter
+﻿from fastapi import (
+    APIRouter,
+    Depends,
+)
 
-from services.ai_engine.signal_generator import SignalGenerator
+from dependencies.subscription import (
+    require_premium_plan,
+)
+from models.user import User
+
+from services.ai_engine.signal_generator import (
+    SignalGenerator,
+)
+
 
 router = APIRouter()
 
 
 @router.get("/signals")
-def get_signal():
-
+def get_signal(
+    current_user: User = Depends(
+        require_premium_plan,
+    ),
+):
     market_data = {}
 
     return SignalGenerator.generate(
-        market_data
+        market_data,
     )

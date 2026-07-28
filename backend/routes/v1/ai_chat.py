@@ -2,14 +2,25 @@
 from sqlalchemy.orm import Session
 
 from database.database import get_db
-from dependencies.auth import get_current_user
+from dependencies.subscription import (
+    require_paid_plan,
+)
 from models.user import User
 
-from schemas.ai_chat.request import AIChatRequest
-from schemas.ai_chat.response import AIChatResponse
+from schemas.ai_chat.request import (
+    AIChatRequest,
+)
+from schemas.ai_chat.response import (
+    AIChatResponse,
+)
 
-from services.ai_chat.context import build_chat_context
-from services.ai_chat.engine import generate_chat_reply
+from services.ai_chat.context import (
+    build_chat_context,
+)
+from services.ai_chat.engine import (
+    generate_chat_reply,
+)
+
 
 router = APIRouter(
     prefix="/ai/chat",
@@ -24,7 +35,9 @@ router = APIRouter(
 def chat_with_coach(
     payload: AIChatRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_paid_plan,
+    ),
 ):
     context = build_chat_context(
         db=db,
@@ -32,7 +45,7 @@ def chat_with_coach(
     )
 
     return generate_chat_reply(
-    user_id=current_user.id,
-    message=payload.message,
-    context=context,
-)
+        user_id=current_user.id,
+        message=payload.message,
+        context=context,
+    )
