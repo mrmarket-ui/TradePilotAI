@@ -1,4 +1,5 @@
-from datetime import datetime
+﻿from datetime import datetime
+
 from pydantic import BaseModel, EmailStr
 
 
@@ -14,6 +15,9 @@ class ProfileResponse(BaseModel):
     plan: str
     ai_credits: int
     is_admin: bool
+
+    preferred_language: str = "en"
+    preferred_currency: str = "USD"
 
     created_at: datetime
 

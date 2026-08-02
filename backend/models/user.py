@@ -67,6 +67,18 @@ class User(Base):
         nullable=False,
     )
 
+    # International preferences
+    preferred_language = Column(
+        String(10),
+        default="en",
+        nullable=False,
+    )
+
+    preferred_currency = Column(
+        String(10),
+        default="USD",
+        nullable=False,
+    )
     # Permissions
     is_active = Column(
         Boolean,

@@ -59,3 +59,11 @@ class PayPalSubscriptionCreateResponse(
     status: str
     plan: str
     approval_url: str
+
+class SubscriptionCancelResponse(
+    BaseModel
+):
+    success: bool
+    status: str
+    plan: str
+    message: str

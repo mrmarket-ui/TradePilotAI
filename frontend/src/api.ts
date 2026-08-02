@@ -15,3 +15,26 @@ export const reviewTrade=async(id:number)=>(await api.get(`/trades/${id}/review`
 export const weekly=async()=>(await api.get("/reports/weekly")).data
 export const monthly=async()=>(await api.get("/reports/monthly")).data
 export const coach=async(message:string)=>(await api.post("/ai/chat",{message})).data
+
+export const subscriptionPlans=async()=>(
+  await api.get("/subscriptions/plans")
+).data
+
+export const mySubscription=async()=>(
+  await api.get("/subscriptions/me")
+).data
+
+export const createPayPalSubscription=async(
+  plan:"pro"|"premium"
+)=>(
+  await api.post(
+    "/subscriptions/paypal/create",
+    {plan}
+  )
+).data
+
+export const cancelSubscription=async()=>(
+  await api.post(
+    "/subscriptions/cancel"
+  )
+).data

@@ -80,3 +80,30 @@ def create_paypal_subscription(
             _find_approval_url(response)
         ),
     }
+def cancel_paypal_subscription(
+    paypal_subscription_id: str,
+    reason: str = (
+        "Customer requested cancellation "
+        "through TradePilot AI."
+    ),
+) -> None:
+    """
+    Cancel an existing PayPal subscription.
+
+    This stops future recurring billing.
+    """
+    if not paypal_subscription_id:
+        raise ValueError(
+            "PayPal subscription ID is required."
+        )
+
+    paypal_request(
+        "POST",
+        (
+            "/v1/billing/subscriptions/"
+            f"{paypal_subscription_id}/cancel"
+        ),
+        json={
+            "reason": reason,
+        },
+    )

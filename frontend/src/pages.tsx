@@ -4,7 +4,10 @@ import {useMutation,useQuery,useQueryClient} from "@tanstack/react-query"
 import {Area,AreaChart,CartesianGrid,ResponsiveContainer,Tooltip,XAxis,YAxis} from "recharts"
 import {Plus,Search,Pencil,Trash2,BrainCircuit,Upload,ExternalLink} from "lucide-react"
 import {useAuth} from "@/Auth"
-import {dashboard,analysis,trades,addTrade,editTrade,removeTrade,reviewTrade,weekly,monthly,coach} from "@/api"
+import {useTranslation} from "react-i18next"
+import {updatePreferences} from "@/api/profile/preferences"
+import {supportedCurrencies} from "@/utils/currency"
+import {dashboard,analysis,trades,addTrade,editTrade,removeTrade,reviewTrade,weekly,monthly,coach,createPayPalSubscription,mySubscription,cancelSubscription} from "@/api"
 import type {Trade,TradePayload} from "@/types"
 export function Login(){const {login,isAuthenticated}=useAuth();const nav=useNavigate(),loc=useLocation();const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[error,setError]=useState(""),[busy,setBusy]=useState(false);const d=(loc.state as any)?.from||"/dashboard";if(isAuthenticated)return <Navigate to={d} replace/>;async function sub(e:FormEvent){e.preventDefault();setBusy(true);setError("");try{await login({email,password});nav(d,{replace:true})}catch{setError("Invalid email or password.")}finally{setBusy(false)}}return <div className="grid min-h-screen place-items-center bg-[#060912] p-4"><form onSubmit={sub} className="premium-card w-full max-w-md rounded-[2rem] p-8"><p className="text-xs uppercase tracking-[.25em] text-blue-300">TradePilot AI</p><h1 className="mt-4 text-3xl font-semibold">Welcome back</h1><input className="mt-8 w-full rounded-2xl border border-white/10 bg-white/[.03] px-4 py-3" type="email" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} required/><input className="mt-4 w-full rounded-2xl border border-white/10 bg-white/[.03] px-4 py-3" type="password" placeholder="Password" value={password} onChange={e=>setPassword(e.target.value)} required/>{error&&<div className="mt-4 rounded-2xl bg-red-400/10 p-3 text-red-300">{error}</div>}<button className="mt-5 w-full rounded-2xl bg-blue-500 px-4 py-3 font-semibold">{busy?"Signing in...":"Enter workspace"}</button></form></div>}
 const Money=({v}:{v?:number})=><>{new Intl.NumberFormat("en-ZA",{style:"currency",currency:"ZAR"}).format(v||0)}</>
@@ -21,7 +24,394 @@ Wait for liquidity sweep
 Require structure shift
 Risk maximum 0.5%`}/><div className="mt-4 rounded-2xl border border-dashed border-white/10 p-8 text-center"><Upload className="mx-auto"/><p className="mt-3">Upload charts, PDFs or notes</p><input type="file" multiple className="mt-4"/></div><button onClick={()=>setSaved(true)} className="mt-4 rounded-2xl bg-blue-500 px-5 py-3">Save strategy</button></div><div className="premium-card rounded-3xl p-6"><h3 className="text-xl font-semibold">Approval-based automation</h3><p className="mt-3 text-slate-400">AI prepares a setup against your rules. You approve before execution. Unattended trading stays disabled until broker and risk controls are validated.</p>{saved&&<div className="mt-5 rounded-2xl bg-emerald-400/10 p-4 text-emerald-300">Strategy profile saved locally.</div>}</div></div></Page>}
 export function Partners(){const offers=[["Recommended Broker","MT5 Â· tracked minimum deposit"],["Prop Firm Challenge","Evaluation and partner signup"],["Lloyd Traders LTD","Trading signals coming soon"],["Affiliate Marketplace","Books, tools and education"]];return <Page title="Brokers & Partners" subtitle="Recommended brokers, prop firms and partner resources."><div className="grid gap-5 md:grid-cols-2">{offers.map(([n,d])=><div key={n} className="premium-card rounded-3xl p-6"><h3 className="text-xl font-semibold">{n}</h3><p className="mt-3 text-slate-400">{d}</p><button className="mt-5 flex items-center gap-2 rounded-2xl border border-white/10 px-4 py-2"><ExternalLink className="size-4"/>View offer</button></div>)}</div><div className="mt-6 rounded-3xl bg-amber-400/[.05] p-5 text-sm text-slate-400">Affiliate disclosure: TradePilot AI may earn commissions through partner links. Trading involves risk.</div></Page>}
-export function Billing(){return <Page title="Billing" subtitle="Free, Pro and Premium access."><div className="grid gap-5 lg:grid-cols-3">{[["Free","R0"],["Pro","R99/month"],["Premium","R199/month"]].map(([n,p])=><div key={n} className="premium-card rounded-3xl p-6"><h3 className="text-xl">{n}</h3><p className="mt-4 text-3xl font-semibold">{p}</p><button className="mt-6 w-full rounded-2xl bg-blue-500 py-3">Choose plan</button></div>)}</div></Page>}
-export function Settings(){return <Page title="Settings" subtitle="Manage profile and application preferences."><div className="premium-card max-w-2xl rounded-3xl p-6"><input className="w-full rounded-2xl border border-white/10 bg-white/[.03] px-4 py-3" placeholder="Display name"/><button className="mt-4 rounded-2xl bg-blue-500 px-5 py-3">Save settings</button></div></Page>}
-function Page({title,subtitle,children}:{title:string;subtitle:string;children:any}){return <div className="space-y-6"><section className="premium-card grid-surface rounded-[2rem] p-8"><p className="text-xs uppercase tracking-[.25em] text-blue-300">TradePilot AI</p><h2 className="mt-4 text-4xl font-semibold">{title}</h2><p className="mt-3 text-slate-400">{subtitle}</p></section>{children}</div>}
+export function Billing(){
+  const {user}=useAuth()
+  const qc=useQueryClient()
 
+  const subscriptionQuery=useQuery({
+    queryKey:["subscription"],
+    queryFn:mySubscription,
+  })
+
+  const [busyPlan,setBusyPlan]=useState("")
+  const [message,setMessage]=useState("")
+
+  const subscription=subscriptionQuery.data
+
+  async function choosePlan(
+    plan:"pro"|"premium"
+  ){
+    setBusyPlan(plan)
+    setMessage("")
+
+    try{
+      const result=
+        await createPayPalSubscription(plan)
+
+      if(!result.approval_url){
+        throw new Error(
+          "PayPal approval URL missing."
+        )
+      }
+
+      window.location.href=
+        result.approval_url
+    }catch(err:any){
+      const detail=
+        err?.response?.data?.detail
+
+      setMessage(
+        typeof detail==="string"
+          ? detail
+          : detail?.message ||
+            "Unable to start PayPal checkout."
+      )
+    }finally{
+      setBusyPlan("")
+    }
+  }
+
+  async function cancelPlan(){
+    const confirmed=window.confirm(
+      "Cancel your subscription? Future PayPal renewals will be stopped."
+    )
+
+    if(!confirmed)return
+
+    setMessage("")
+
+    try{
+      const result=
+        await cancelSubscription()
+
+      setMessage(
+        result.message ||
+        "Subscription cancelled."
+      )
+
+      await qc.invalidateQueries({
+        queryKey:["subscription"]
+      })
+
+      await subscriptionQuery.refetch()
+    }catch(err:any){
+      const detail=
+        err?.response?.data?.detail
+
+      setMessage(
+        typeof detail==="string"
+          ? detail
+          : detail?.message ||
+            "Unable to cancel subscription."
+      )
+    }
+  }
+
+  const plans=[
+    {
+      name:"Free",
+      code:"free",
+      launchPrice:"$0",
+      normalPrice:"",
+      detail:"Forever",
+    },
+    {
+      name:"Pro",
+      code:"pro",
+      launchPrice:"$10",
+      normalPrice:"$19.99/month",
+      detail:"First month",
+    },
+    {
+      name:"Premium",
+      code:"premium",
+      launchPrice:"$10",
+      normalPrice:"$29.99/month",
+      detail:"First month",
+    },
+  ] as const
+
+  return (
+    <Page
+      title="Billing"
+      subtitle="Flexible plans for every stage of your trading journey."
+    >
+      {subscription && (
+        <div className="premium-card rounded-3xl p-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-sm text-slate-500">
+                Current subscription
+              </p>
+
+              <p className="mt-1 text-xl font-semibold capitalize">
+                {subscription.plan}
+              </p>
+
+              <p className="mt-1 text-sm text-slate-400">
+                Status:{" "}
+                <span className="capitalize">
+                  {subscription.status}
+                </span>
+              </p>
+
+              {subscription.next_billing_at && (
+                <p className="mt-1 text-sm text-slate-400">
+                  Next billing:{" "}
+                  {new Date(
+                    subscription.next_billing_at
+                  ).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+
+            {subscription.plan!=="free" &&
+             subscription.status!=="cancelled" &&
+             subscription.status!=="canceled" && (
+              <button
+                type="button"
+                onClick={cancelPlan}
+                className="rounded-2xl border border-red-400/30 px-5 py-3 text-red-300 hover:bg-red-400/10"
+              >
+                Cancel anytime
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {message && (
+        <div className="rounded-2xl border border-blue-400/20 bg-blue-400/10 p-4 text-sm text-blue-200">
+          {message}
+        </div>
+      )}
+
+      <div className="grid gap-5 lg:grid-cols-3">
+        {plans.map(plan=>(
+          <div
+            key={plan.code}
+            className="premium-card rounded-3xl p-6"
+          >
+            <h3 className="text-xl font-semibold">
+              {plan.name}
+            </h3>
+
+            {plan.code!=="free" && (
+              <div className="mt-4 inline-flex rounded-full bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-300">
+                Launch Offer
+              </div>
+            )}
+
+            <p className="mt-4 text-4xl font-semibold">
+              {plan.launchPrice}
+            </p>
+
+            <p className="mt-1 text-sm text-slate-500">
+              {plan.detail}
+            </p>
+
+            {plan.normalPrice && (
+              <p className="mt-3 text-sm text-slate-400">
+                Then{" "}
+                <span className="font-medium text-slate-200">
+                  {plan.normalPrice}
+                </span>
+              </p>
+            )}
+
+            {plan.code!=="free" && (
+              <p className="mt-2 text-xs text-slate-500">
+                Cancel anytime
+              </p>
+            )}
+
+            <p className="mt-5 text-sm text-slate-400">
+              Preferred display currency:{" "}
+              <span className="font-medium text-slate-200">
+                {user?.preferred_currency || "USD"}
+              </span>
+            </p>
+
+            {plan.code==="free" ? (
+              <button
+                type="button"
+                disabled
+                className="mt-6 w-full rounded-2xl bg-white/5 py-3 text-slate-500"
+              >
+                Free plan
+              </button>
+            ) : (
+              <button
+                type="button"
+                disabled={
+                  busyPlan!=="" ||
+                  subscription?.status==="active"
+                }
+                onClick={()=>
+                  choosePlan(plan.code)
+                }
+                className="mt-6 w-full rounded-2xl bg-blue-500 py-3 font-medium disabled:opacity-50"
+              >
+                {busyPlan===plan.code
+                  ? "Opening PayPal..."
+                  : `Choose ${plan.name}`}
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="premium-card rounded-3xl p-5 text-sm text-slate-400">
+        <p>
+          PayPal billing currency: USD.
+        </p>
+
+        <p className="mt-2">
+          Pro: $10 for the first month, then $19.99/month.
+        </p>
+
+        <p className="mt-1">
+          Premium: $10 for the first month, then $29.99/month.
+        </p>
+
+        <p className="mt-1">
+          Cancel anytime to stop future renewals.
+        </p>
+      </div>
+    </Page>
+  )
+}
+export function Settings(){
+  const {user}=useAuth()
+  const {t,i18n}=useTranslation()
+
+  const [language,setLanguage]=useState(
+    user?.preferred_language || "en"
+  )
+
+  const [currency,setCurrency]=useState(
+    user?.preferred_currency || "USD"
+  )
+
+  const [saving,setSaving]=useState(false)
+  const [message,setMessage]=useState("")
+
+  async function savePreferences(){
+    setSaving(true)
+    setMessage("")
+
+    try{
+      const updated=await updatePreferences({
+        preferred_language:language,
+        preferred_currency:currency,
+      })
+
+      await i18n.changeLanguage(
+        updated.preferred_language || language
+      )
+
+      localStorage.setItem(
+        "i18nextLng",
+        updated.preferred_language || language
+      )
+
+      const existing=JSON.parse(
+        localStorage.getItem("tradepilot_user") || "{}"
+      )
+
+      localStorage.setItem(
+        "tradepilot_user",
+        JSON.stringify({
+          ...existing,
+          ...updated,
+        })
+      )
+
+      setMessage("Preferences saved successfully.")
+    }catch{
+      setMessage("Unable to save preferences.")
+    }finally{
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Page
+      title={t("settings")}
+      subtitle="Manage your profile and global application preferences."
+    >
+      <div className="premium-card max-w-3xl rounded-3xl p-6">
+        <div className="grid gap-6 md:grid-cols-2">
+
+          <div>
+            <label className="mb-2 block text-sm text-slate-400">
+              {t("language")}
+            </label>
+
+            <select
+              value={language}
+              onChange={e=>setLanguage(e.target.value)}
+              className="w-full rounded-2xl border border-white/10 bg-[#0b1120] px-4 py-3"
+            >
+              <option value="en">English</option>
+              <option value="af">Afrikaans</option>
+              <option value="fr">Français</option>
+              <option value="es">Español</option>
+              <option value="pt">Português</option>
+              <option value="de">Deutsch</option>
+              <option value="ar">العربية</option>
+              <option value="zh">中文</option>
+              <option value="ja">日本語</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm text-slate-400">
+              {t("currency")}
+            </label>
+
+            <select
+              value={currency}
+              onChange={e=>setCurrency(e.target.value)}
+              className="w-full rounded-2xl border border-white/10 bg-[#0b1120] px-4 py-3"
+            >
+              {supportedCurrencies.map(item=>(
+                <option
+                  key={item.code}
+                  value={item.code}
+                >
+                  {item.code} — {item.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+          <p className="text-sm text-slate-400">
+            These preferences are stored on your TradePilot AI account,
+            so they can follow you across web and mobile devices.
+          </p>
+        </div>
+
+        {message && (
+          <p className="mt-4 text-sm text-blue-300">
+            {message}
+          </p>
+        )}
+
+        <button
+          type="button"
+          disabled={saving}
+          onClick={savePreferences}
+          className="mt-6 rounded-2xl bg-blue-500 px-6 py-3 font-medium disabled:opacity-50"
+        >
+          {saving
+            ? "Saving..."
+            : t("savePreferences")}
+        </button>
+      </div>
+    </Page>
+  )
+}
+function Page({title,subtitle,children}:{title:string;subtitle:string;children:any}){return <div className="space-y-6"><section className="premium-card grid-surface rounded-[2rem] p-8"><p className="text-xs uppercase tracking-[.25em] text-blue-300">TradePilot AI</p><h2 className="mt-4 text-4xl font-semibold">{title}</h2><p className="mt-3 text-slate-400">{subtitle}</p></section>{children}</div>}

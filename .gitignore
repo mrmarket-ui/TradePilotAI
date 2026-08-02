@@ -22,3 +22,34 @@ __pycache__/
 *.pyc
 .env
 tradepilot.db
+backend/tradepilot.db
+
+# Local databases
+backend/tradepilot.db
+
+# Environment files and environment backups
+backend/.env
+backend/.env.before-*
+frontend/.env
+
+# Python environments/cache
+backend/venv/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+
+# Node build/dependencies
+frontend/node_modules/
+frontend/dist/
+
+# Development backup files
+*.before-*.py
+*.before-*.txt
+*.backup.txt
+*.before-*
+frontend/src/pages.tsx.before-*
+frontend/src/pages.before-*.tsx
+
+# Local project backups
+frontend_backup/
+frontend_shell_backup/

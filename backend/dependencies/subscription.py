@@ -14,11 +14,30 @@ PAID_PLANS = {
 }
 
 
+def has_admin_access(
+    user: User,
+) -> bool:
+    """
+    Platform administrators receive full feature access
+    without requiring a paid subscription.
+
+    This does NOT create or modify PayPal subscriptions.
+    """
+    return bool(user.is_admin)
+
+
 def require_paid_plan(
     current_user: User = Depends(
         get_current_user,
     ),
 ) -> User:
+
+    # -------------------------------------------------
+    # ADMIN / OWNER BYPASS
+    # -------------------------------------------------
+    if has_admin_access(current_user):
+        return current_user
+
     plan = (
         current_user.plan
         or "free"
@@ -51,6 +70,13 @@ def require_premium_plan(
         get_current_user,
     ),
 ) -> User:
+
+    # -------------------------------------------------
+    # ADMIN / OWNER BYPASS
+    # -------------------------------------------------
+    if has_admin_access(current_user):
+        return current_user
+
     plan = (
         current_user.plan
         or "free"

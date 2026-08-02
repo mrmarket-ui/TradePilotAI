@@ -1,26 +1,41 @@
 ﻿import {
   CheckCircle2,
+  Copy,
   Pencil,
   Power,
   Trash2,
 } from "lucide-react"
 
-import type { StrategyProfile } from "@/types/strategy"
+import type {
+  StrategyProfile,
+} from "@/types/strategy"
 
 type StrategyCardProps = {
   strategy: StrategyProfile
   isActivating: boolean
   isDeleting: boolean
-  onEdit: (strategy: StrategyProfile) => void
-  onActivate: (strategyId: number) => void
-  onDelete: (strategyId: number) => void
+  isCloning: boolean
+  onEdit: (
+    strategy: StrategyProfile,
+  ) => void
+  onClone: (
+    strategy: StrategyProfile,
+  ) => void
+  onActivate: (
+    strategyId: number,
+  ) => void
+  onDelete: (
+    strategyId: number,
+  ) => void
 }
 
 export default function StrategyCard({
   strategy,
   isActivating,
   isDeleting,
+  isCloning,
   onEdit,
+  onClone,
   onActivate,
   onDelete,
 }: StrategyCardProps) {
@@ -57,11 +72,25 @@ export default function StrategyCard({
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => onEdit(strategy)}
+            onClick={() =>
+              onEdit(strategy)
+            }
             className="grid size-10 place-items-center rounded-2xl border border-white/10 bg-white/[0.03] text-slate-300 transition hover:bg-white/[0.07]"
             title="Edit strategy"
           >
             <Pencil className="size-4" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              onClone(strategy)
+            }
+            disabled={isCloning}
+            className="grid size-10 place-items-center rounded-2xl border border-blue-400/15 bg-blue-400/[0.05] text-blue-300 transition hover:bg-blue-400/10 disabled:opacity-50"
+            title="Clone strategy"
+          >
+            <Copy className="size-4" />
           </button>
 
           <button
@@ -85,42 +114,44 @@ export default function StrategyCard({
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl border border-white/8 bg-white/[0.025] p-4">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
           <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
             Markets
           </p>
 
-          <p className="mt-2 text-sm font-medium text-slate-200">
-            {strategy.markets.join(", ") || "None"}
+          <p className="mt-2 text-sm font-medium">
+            {strategy.markets.join(", ") ||
+              "None"}
           </p>
         </div>
 
-        <div className="rounded-2xl border border-white/8 bg-white/[0.025] p-4">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
           <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
             Timeframes
           </p>
 
-          <p className="mt-2 text-sm font-medium text-slate-200">
-            {strategy.timeframes.join(", ") || "None"}
+          <p className="mt-2 text-sm font-medium">
+            {strategy.timeframes.join(", ") ||
+              "None"}
           </p>
         </div>
 
-        <div className="rounded-2xl border border-white/8 bg-white/[0.025] p-4">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
           <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
             Risk per trade
           </p>
 
-          <p className="mt-2 text-sm font-medium text-slate-200">
+          <p className="mt-2 text-sm font-medium">
             {strategy.max_risk_percent}%
           </p>
         </div>
 
-        <div className="rounded-2xl border border-white/8 bg-white/[0.025] p-4">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
           <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
             Entry rules
           </p>
 
-          <p className="mt-2 text-sm font-medium text-slate-200">
+          <p className="mt-2 text-sm font-medium">
             {strategy.entry_rules.length}
           </p>
         </div>
@@ -128,35 +159,40 @@ export default function StrategyCard({
 
       <div className="mt-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div className="flex flex-wrap gap-2">
-          {strategy.sessions.slice(0, 3).map((session) => (
-            <span
-              key={session}
-              className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-slate-400"
-            >
-              {session}
-            </span>
-          ))}
+          {strategy.sessions
+            .slice(0, 3)
+            .map((session) => (
+              <span
+                key={session}
+                className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-slate-400"
+              >
+                {session}
+              </span>
+            ))}
 
-          {strategy.confirmations.slice(0, 3).map(
-            (confirmation) => (
+          {strategy.confirmations
+            .slice(0, 3)
+            .map((confirmation) => (
               <span
                 key={confirmation}
                 className="rounded-full border border-blue-400/15 bg-blue-400/[0.05] px-3 py-1 text-xs text-blue-300"
               >
                 {confirmation}
               </span>
-            ),
-          )}
+            ))}
         </div>
 
         {!strategy.is_active ? (
           <button
             type="button"
-            onClick={() => onActivate(strategy.id)}
+            onClick={() =>
+              onActivate(strategy.id)
+            }
             disabled={isActivating}
             className="flex items-center justify-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.07] px-4 py-2.5 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-400/10 disabled:opacity-50"
           >
             <Power className="size-4" />
+
             {isActivating
               ? "Activating..."
               : "Set active"}

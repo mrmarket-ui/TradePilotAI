@@ -21,6 +21,10 @@ from routes.v1 import coach_v2
 from routes.v1 import recommendations
 from routes.v1 import ai_chat
 from routes.v1 import strategy_profiles
+from routes.v1 import admin
+from routes.v1 import admin_users
+from routes.v1 import admin_subscriptions
+from routes.v1 import admin_system
 # Trading routes
 from routes.v1.trading import sync
 from routes.v1.trading import analytics as trading_analytics
@@ -30,6 +34,11 @@ from routes.v1 import trade_review
 from routes.v1 import weekly_review
 from routes.v1 import monthly_review
 from routes.v1 import subscriptions
+from routes.v1 import paypal
+
+
+
+
 app = FastAPI(
     title="TradePilot AI",
     version="1.0.0",
@@ -194,5 +203,30 @@ app.include_router(
 )
 app.include_router(
     subscriptions.router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    paypal.router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    admin.router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    admin_users.router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    admin_subscriptions.router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    admin_system.router,
     prefix="/api/v1",
 )

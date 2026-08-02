@@ -15,9 +15,9 @@ from schemas.subscription import (
     PayPalSubscriptionCreateResponse,
     PlanCatalogueResponse,
     PublicPlanResponse,
+    SubscriptionCancelResponse,
     SubscriptionResponse,
 )
-
 from services.paypal.client import (
     PayPalAPIError,
     PayPalConfigurationError,
@@ -25,13 +25,13 @@ from services.paypal.client import (
 
 from services.subscriptions.crud import (
     get_or_create_subscription,
+    mark_subscription_cancelled,
     save_pending_paypal_subscription,
 )
-
 from services.subscriptions.paypal import (
+    cancel_paypal_subscription,
     create_paypal_subscription,
 )
-
 from services.subscriptions.plans import (
     get_subscription_plan,
     get_subscription_plans,
@@ -200,4 +200,97 @@ def begin_paypal_subscription(
                 status.HTTP_502_BAD_GATEWAY
             ),
             detail=str(exc),
+        ) from exc
+@router.post(
+    "/cancel",
+    response_model=SubscriptionCancelResponse,
+)
+def cancel_subscription(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        get_current_user,
+    ),
+):
+    subscription = get_or_create_subscription(
+        db=db,
+        user_id=current_user.id,
+    )
+
+    if subscription.plan == "free":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "The Free plan does not have "
+                "a subscription to cancel."
+            ),
+        )
+
+    if not subscription.paypal_subscription_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "No PayPal subscription was "
+                "found for this account."
+            ),
+        )
+
+    if subscription.status in {
+        "cancelled",
+        "canceled",
+    }:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "This subscription has "
+                "already been cancelled."
+            ),
+        )
+
+    try:
+        cancel_paypal_subscription(
+            subscription.paypal_subscription_id,
+        )
+
+        mark_subscription_cancelled(
+            db=db,
+            subscription=subscription,
+        )
+
+        return {
+            "success": True,
+            "status": "cancelled",
+            "plan": subscription.plan,
+            "message": (
+                "Your subscription has been "
+                "cancelled successfully. "
+                "Future PayPal renewals have "
+                "been stopped."
+            ),
+        }
+
+    except PayPalConfigurationError as exc:
+        raise HTTPException(
+            status_code=(
+                status.HTTP_500_INTERNAL_SERVER_ERROR
+            ),
+            detail=str(exc),
+        ) from exc
+
+    except PayPalAPIError as exc:
+        raise HTTPException(
+            status_code=(
+                status.HTTP_502_BAD_GATEWAY
+            ),
+            detail={
+                "message": (
+                    "PayPal could not cancel "
+                    "the subscription."
+                ),
+                "paypal_status_code": (
+                    exc.status_code
+                ),
+                "paypal_details": (
+                    exc.details
+                ),
+            },
         ) from exc

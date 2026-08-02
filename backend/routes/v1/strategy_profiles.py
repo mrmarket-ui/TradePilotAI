@@ -1,18 +1,13 @@
-﻿from dataclasses import asdict
-
-from fastapi import (
+﻿from fastapi import (
     APIRouter,
     Depends,
     HTTPException,
-    Response,
     status,
 )
 from sqlalchemy.orm import Session
 
 from database.database import get_db
 from dependencies.auth import get_current_user
-from dependencies.subscription import require_paid_plan
-
 from models.user import User
 
 from schemas.strategy_profile import (
@@ -33,15 +28,17 @@ from services.strategy_lab.crud import (
     update_strategy,
 )
 
+from services.strategy_lab.engine import (
+    evaluate_setup,
+)
+
 from services.strategy_lab.validator import (
     validate_strategy_create,
     validate_strategy_update,
 )
-
-from services.strategy_score.engine import (
-    score_strategy,
+from dependencies.subscription import (
+    require_premium_plan,
 )
-
 
 router = APIRouter(
     prefix="/strategies",
@@ -62,9 +59,7 @@ def get_owned_strategy(
 
     if strategy is None:
         raise HTTPException(
-            status_code=(
-                status.HTTP_404_NOT_FOUND
-            ),
+            status_code=status.HTTP_404_NOT_FOUND,
             detail="Strategy not found.",
         )
 
@@ -79,13 +74,15 @@ def get_owned_strategy(
 def create_strategy_profile(
     payload: StrategyProfileCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(
-        get_current_user,
-    ),
+    current_user: User = Depends(get_current_user),
 ):
-    validate_strategy_create(
-        payload=payload,
-    )
+    try:
+        validate_strategy_create(payload)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(exc),
+        ) from exc
 
     return create_strategy(
         db=db,
@@ -100,9 +97,7 @@ def create_strategy_profile(
 )
 def read_strategy_profiles(
     db: Session = Depends(get_db),
-    current_user: User = Depends(
-        get_current_user,
-    ),
+    current_user: User = Depends(get_current_user),
 ):
     strategies = list_strategies(
         db=db,
@@ -122,9 +117,7 @@ def read_strategy_profiles(
 def read_strategy_profile(
     strategy_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(
-        get_current_user,
-    ),
+    current_user: User = Depends(get_current_user),
 ):
     return get_owned_strategy(
         db=db,
@@ -141,18 +134,20 @@ def patch_strategy_profile(
     strategy_id: int,
     payload: StrategyProfileUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(
-        get_current_user,
-    ),
+    current_user: User = Depends(get_current_user),
 ):
+    try:
+        validate_strategy_update(payload)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(exc),
+        ) from exc
+
     strategy = get_owned_strategy(
         db=db,
         user_id=current_user.id,
         strategy_id=strategy_id,
-    )
-
-    validate_strategy_update(
-        payload=payload,
     )
 
     return update_strategy(
@@ -162,16 +157,11 @@ def patch_strategy_profile(
     )
 
 
-@router.delete(
-    "/{strategy_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-)
+@router.delete("/{strategy_id}")
 def remove_strategy_profile(
     strategy_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(
-        get_current_user,
-    ),
+    current_user: User = Depends(get_current_user),
 ):
     strategy = get_owned_strategy(
         db=db,
@@ -184,9 +174,11 @@ def remove_strategy_profile(
         strategy=strategy,
     )
 
-    return Response(
-        status_code=status.HTTP_204_NO_CONTENT,
-    )
+    return {
+        "success": True,
+        "message": "Strategy deleted.",
+        "strategy_id": strategy_id,
+    }
 
 
 @router.post(
@@ -196,9 +188,7 @@ def remove_strategy_profile(
 def activate_strategy_profile(
     strategy_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(
-        get_current_user,
-    ),
+    current_user: User = Depends(get_current_user),
 ):
     strategy = get_owned_strategy(
         db=db,
@@ -220,9 +210,7 @@ def score_strategy_setup(
     strategy_id: int,
     payload: SetupScoreRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(
-        require_paid_plan,
-    ),
+    current_user: User = Depends(get_current_user),
 ):
     strategy = get_owned_strategy(
         db=db,
@@ -230,26 +218,7 @@ def score_strategy_setup(
         strategy_id=strategy_id,
     )
 
-    result = score_strategy(
+    return evaluate_setup(
         strategy=strategy,
         payload=payload,
     )
-
-    return {
-        "strategy_id": strategy.id,
-        "strategy_name": strategy.name,
-        "overall_score":
-            result.overall_score,
-        "verdict": result.verdict,
-        "confidence": result.confidence,
-        "components": [
-            asdict(component)
-            for component
-            in result.components
-        ],
-        "strengths": result.strengths,
-        "weaknesses": result.weaknesses,
-        "recommendation":
-            result.recommendation,
-        "metadata": result.metadata,
-    }

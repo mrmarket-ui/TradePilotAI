@@ -92,3 +92,14 @@ def save_pending_paypal_subscription(
     db.refresh(subscription)
 
     return subscription
+
+def mark_subscription_cancelled(
+    db: Session,
+    subscription: Subscription,
+) -> Subscription:
+    subscription.status = "cancelled"
+
+    db.commit()
+    db.refresh(subscription)
+
+    return subscription
