@@ -23,7 +23,7 @@ export function Strategy(){const [saved,setSaved]=useState(false);return <Page t
 Wait for liquidity sweep
 Require structure shift
 Risk maximum 0.5%`}/><div className="mt-4 rounded-2xl border border-dashed border-white/10 p-8 text-center"><Upload className="mx-auto"/><p className="mt-3">Upload charts, PDFs or notes</p><input type="file" multiple className="mt-4"/></div><button onClick={()=>setSaved(true)} className="mt-4 rounded-2xl bg-blue-500 px-5 py-3">Save strategy</button></div><div className="premium-card rounded-3xl p-6"><h3 className="text-xl font-semibold">Approval-based automation</h3><p className="mt-3 text-slate-400">AI prepares a setup against your rules. You approve before execution. Unattended trading stays disabled until broker and risk controls are validated.</p>{saved&&<div className="mt-5 rounded-2xl bg-emerald-400/10 p-4 text-emerald-300">Strategy profile saved locally.</div>}</div></div></Page>}
-export function Partners(){const offers=[["Recommended Broker","MT5 Â· tracked minimum deposit"],["Prop Firm Challenge","Evaluation and partner signup"],["Lloyd Traders LTD","Trading signals coming soon"],["Affiliate Marketplace","Books, tools and education"]];return <Page title="Brokers & Partners" subtitle="Recommended brokers, prop firms and partner resources."><div className="grid gap-5 md:grid-cols-2">{offers.map(([n,d])=><div key={n} className="premium-card rounded-3xl p-6"><h3 className="text-xl font-semibold">{n}</h3><p className="mt-3 text-slate-400">{d}</p><button className="mt-5 flex items-center gap-2 rounded-2xl border border-white/10 px-4 py-2"><ExternalLink className="size-4"/>View offer</button></div>)}</div><div className="mt-6 rounded-3xl bg-amber-400/[.05] p-5 text-sm text-slate-400">Affiliate disclosure: TradePilot AI may earn commissions through partner links. Trading involves risk.</div></Page>}
+export function LegacyPartnersOld(){const offers=[["Recommended Broker","MT5 Â· tracked minimum deposit"],["Prop Firm Challenge","Evaluation and partner signup"],["Lloyd Traders LTD","Trading signals coming soon"],["Affiliate Marketplace","Books, tools and education"]];return <Page title="Brokers & Partners" subtitle="Recommended brokers, prop firms and partner resources."><div className="grid gap-5 md:grid-cols-2">{offers.map(([n,d])=><div key={n} className="premium-card rounded-3xl p-6"><h3 className="text-xl font-semibold">{n}</h3><p className="mt-3 text-slate-400">{d}</p><button className="mt-5 flex items-center gap-2 rounded-2xl border border-white/10 px-4 py-2"><ExternalLink className="size-4"/>View offer</button></div>)}</div><div className="mt-6 rounded-3xl bg-amber-400/[.05] p-5 text-sm text-slate-400">Affiliate disclosure: TradePilot AI may earn commissions through partner links. Trading involves risk.</div></Page>}
 export function Billing(){
   const {user}=useAuth()
   const qc=useQueryClient()
@@ -415,3 +415,205 @@ export function Settings(){
   )
 }
 function Page({title,subtitle,children}:{title:string;subtitle:string;children:any}){return <div className="space-y-6"><section className="premium-card grid-surface rounded-[2rem] p-8"><p className="text-xs uppercase tracking-[.25em] text-blue-300">TradePilot AI</p><h2 className="mt-4 text-4xl font-semibold">{title}</h2><p className="mt-3 text-slate-400">{subtitle}</p></section>{children}</div>}
+export function LegacyPartnersOld2(){
+  const propFirms=[
+    {
+      name:"VPropTrader",
+      description:
+        "Take a free $1,000 prop trading challenge, test your trading skills and qualify for profit sharing if successful.",
+      url:"https://vproptrader.com/share/yvc3h?invite=nkd8i16c",
+      badge:"Free $1,000 Challenge",
+    },
+    {
+      name:"FundedElite",
+      description:
+        "Explore FundedElite prop trading challenges and funding opportunities.",
+      url:"https://app.fundedelite.com?aff=AFF8683831",
+      badge:"Prop Firm",
+    },
+    {
+      name:"The5ers",
+      description:
+        "Explore trading programs and funding opportunities from The5ers.",
+      url:"https://www.the5ers.com/?afmc=1dtk",
+      badge:"Prop Firm",
+    },
+  ]
+
+  const brokers=[
+    {
+      name:"DB Investing",
+      description:
+        "Recommended broker available through the TradePilot AI partner network.",
+      url:"https://my.dbinvesting.com/links/go/3766",
+      badge:"Recommended Broker",
+    },
+    {
+      name:"Headway",
+      description:
+        "Broker option for traders looking for an accessible trading platform.",
+      url:"https://headway.partners/user/signup?hwp=12eab6",
+      badge:"Affordable Option",
+    },
+    {
+      name:"XM ZA",
+      description:
+        "Explore XM through the TradePilot AI referral partnership.",
+      url:"https://www.xmza.com/referral?token=ir4kDrpVX16S63SmNzNj3A",
+      badge:"Broker",
+    },
+  ]
+
+  function openPartner(
+    url:string,
+    name:string,
+    type:"broker"|"prop_firm",
+  ){
+    // Later we will send this event to the backend
+    // so the Admin dashboard can track partner clicks.
+    console.log("Partner click",{
+      name,
+      type,
+      url,
+    })
+
+    window.open(
+      url,
+      "_blank",
+      "noopener,noreferrer",
+    )
+  }
+
+  return (
+    <Page
+      title="Brokers & Prop Firms"
+      subtitle="Explore TradePilot AI partner brokers and proprietary trading opportunities."
+    >
+      <section>
+        <div className="mb-5">
+          <p className="text-xs uppercase tracking-[.25em] text-blue-300">
+            Funding Opportunities
+          </p>
+
+          <h3 className="mt-2 text-2xl font-semibold">
+            Prop Firm Recommendations
+          </h3>
+
+          <p className="mt-2 text-sm text-slate-400">
+            Explore third-party trading challenges and funding programs.
+          </p>
+        </div>
+
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {propFirms.map(firm=>(
+            <div
+              key={firm.name}
+              className="premium-card flex flex-col rounded-3xl p-6"
+            >
+              <div>
+                <span className="rounded-full bg-blue-400/10 px-3 py-1 text-xs text-blue-300">
+                  {firm.badge}
+                </span>
+
+                <h4 className="mt-5 text-xl font-semibold">
+                  {firm.name}
+                </h4>
+
+                <p className="mt-3 text-sm leading-6 text-slate-400">
+                  {firm.description}
+                </p>
+              </div>
+
+              <button
+                onClick={()=>
+                  openPartner(
+                    firm.url,
+                    firm.name,
+                    "prop_firm",
+                  )
+                }
+                className="mt-6 flex items-center justify-center gap-2 rounded-2xl bg-blue-500 px-4 py-3 font-medium"
+              >
+                View Opportunity
+                <ExternalLink className="size-4"/>
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <div className="mb-5">
+          <p className="text-xs uppercase tracking-[.25em] text-blue-300">
+            Trading Partners
+          </p>
+
+          <h3 className="mt-2 text-2xl font-semibold">
+            Broker Recommendations
+          </h3>
+
+          <p className="mt-2 text-sm text-slate-400">
+            Explore brokers available through TradePilot AI partner links.
+          </p>
+        </div>
+
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {brokers.map(broker=>(
+            <div
+              key={broker.name}
+              className="premium-card flex flex-col rounded-3xl p-6"
+            >
+              <div>
+                <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs text-emerald-300">
+                  {broker.badge}
+                </span>
+
+                <h4 className="mt-5 text-xl font-semibold">
+                  {broker.name}
+                </h4>
+
+                <p className="mt-3 text-sm leading-6 text-slate-400">
+                  {broker.description}
+                </p>
+              </div>
+
+              <button
+                onClick={()=>
+                  openPartner(
+                    broker.url,
+                    broker.name,
+                    "broker",
+                  )
+                }
+                className="mt-6 flex items-center justify-center gap-2 rounded-2xl bg-blue-500 px-4 py-3 font-medium"
+              >
+                Visit Broker
+                <ExternalLink className="size-4"/>
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="premium-card mt-8 rounded-3xl p-5">
+        <p className="text-sm leading-6 text-slate-400">
+          <strong className="text-slate-200">
+            Affiliate disclosure:
+          </strong>{" "}
+          Some links on this page are affiliate or referral links.
+          TradePilot AI may receive compensation when users register
+          through these links. This does not increase the price paid
+          by the user.
+        </p>
+
+        <p className="mt-3 text-sm leading-6 text-slate-500">
+          Trading leveraged products and participating in proprietary
+          trading challenges involve financial risk. Eligibility,
+          pricing, rules and services are determined by each
+          independent provider. Review each provider's terms before
+          opening an account or purchasing a challenge.
+        </p>
+      </section>
+    </Page>
+  )
+}

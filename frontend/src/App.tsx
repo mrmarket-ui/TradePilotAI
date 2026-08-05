@@ -14,7 +14,6 @@ import {
   Coach,
   DNA,
   Login,
-  Partners,
   Reports,
   Settings,
   Trades,
@@ -23,12 +22,19 @@ import {
 import DashboardPage from "@/pages/DashboardPage"
 import StrategyLabPage from "@/pages/StrategyLabPage"
 import SetupScorerPage from "@/pages/SetupScorerPage"
+import PartnersPage from "@/pages/PartnersPage"
+import PartnerDetailPage from "@/pages/PartnerDetailPage"
+import PartnerComparePage from "@/pages/PartnerComparePage"
+import PartnerMatchPage from "@/pages/PartnerMatchPage"
 
 import AdminLayout from "@/pages/admin/AdminLayout"
 import AdminDashboard from "@/pages/admin/AdminDashboard"
 import AdminUsers from "@/pages/admin/AdminUsers"
 import AdminSubscriptions from "@/pages/admin/AdminSubscriptions"
 import AdminSystem from "@/pages/admin/AdminSystem"
+import AdminPartners from "@/pages/admin/AdminPartners"
+import AdminPartnerAnalytics from "@/pages/admin/AdminPartnerAnalytics"
+import AdminPartnerOffers from "@/pages/admin/AdminPartnerOffers"
 
 
 function LoadingScreen({
@@ -189,7 +195,7 @@ export default function App() {
 
         <Route
           path="/partners"
-          element={<Partners />}
+          element={<PartnersPage />}
         />
 
         <Route
@@ -260,6 +266,19 @@ export default function App() {
             />
 
             <Route
+              path="partners"
+              element={<AdminPartners />}
+            />
+            <Route
+              path="partner-analytics"
+              element={<AdminPartnerAnalytics />}
+            />
+            <Route
+              path="partner-offers"
+              element={<AdminPartnerOffers />}
+            />
+
+            <Route
               path="system"
               element={<AdminSystem />}
             />
@@ -279,3 +298,9 @@ export default function App() {
     </Routes>
   )
 }
+
+
+
+
+
+

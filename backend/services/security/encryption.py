@@ -1,4 +1,4 @@
-import os
+﻿import os
 from pathlib import Path
 
 from cryptography.fernet import Fernet
@@ -10,7 +10,7 @@ load_dotenv(BASE_DIR / ".env")
 key = os.getenv("ENCRYPTION_KEY")
 
 if not key:
-    raise RuntimeError("ENCRYPTION_KEY not found in .env")
+    raise RuntimeError("ENCRYPTION_KEY environment variable is not configured.")
 
 FERNET = Fernet(key.encode())
 

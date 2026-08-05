@@ -7,6 +7,7 @@ from models.user import User
 from models.trade import Trade
 from models.broker_account import BrokerAccount
 from models.strategy_profile import StrategyProfile
+from models.partner import Partner, PartnerClick, SavedPartner
 # Core routes
 from routes.v1 import health
 from routes.v1 import auth
@@ -25,6 +26,10 @@ from routes.v1 import admin
 from routes.v1 import admin_users
 from routes.v1 import admin_subscriptions
 from routes.v1 import admin_system
+from routes.v1 import partners
+from routes.v1 import admin_partners
+from routes.v1 import partner_reviews
+from routes.v1 import admin_partner_offers
 # Trading routes
 from routes.v1.trading import sync
 from routes.v1.trading import analytics as trading_analytics
@@ -230,3 +235,25 @@ app.include_router(
     admin_system.router,
     prefix="/api/v1",
 )
+
+app.include_router(
+    partners.router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    admin_partners.router,
+    prefix="/api/v1",
+)
+
+
+app.include_router(
+    partner_reviews.router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    admin_partner_offers.router,
+    prefix="/api/v1",
+)
+
