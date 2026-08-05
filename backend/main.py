@@ -54,7 +54,9 @@ app = FastAPI(
 )
 allowed_origins = [
     "http://localhost:5173",
-    "http://127.0.0.1:5173",    
+    "http://127.0.0.1:5173",
+    "http://localhost:4173",
+    "http://127.0.0.1:4173",
 ]
 
 app.add_middleware(
@@ -256,4 +258,5 @@ app.include_router(
     admin_partner_offers.router,
     prefix="/api/v1",
 )
+
 
