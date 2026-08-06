@@ -22,6 +22,9 @@ import {
 import DashboardPage from "@/pages/DashboardPage"
 import StrategyLabPage from "@/pages/StrategyLabPage"
 import SetupScorerPage from "@/pages/SetupScorerPage"
+import StrategyImporterPage from "@/pages/StrategyImporterPage"
+import AISignalLabPage from "@/pages/AISignalLabPage"
+import PaperTradingPage from "@/pages/PaperTradingPage"
 import PartnersPage from "@/pages/PartnersPage"
 import PartnerDetailPage from "@/pages/PartnerDetailPage"
 import PartnerComparePage from "@/pages/PartnerComparePage"
@@ -242,6 +245,18 @@ export default function App() {
             path="/setup-scorer"
             element={<SetupScorerPage />}
           />
+          <Route
+            path="/strategy-importer"
+            element={<StrategyImporterPage />}
+          />
+          <Route
+            path="/ai-signal-lab"
+            element={<AISignalLabPage />}
+          />
+          <Route
+            path="/paper-trading"
+            element={<PaperTradingPage />}
+          />
         </Route>
 
         {/* ADMIN ONLY */}
@@ -298,6 +313,10 @@ export default function App() {
     </Routes>
   )
 }
+
+
+
+
 
 
 

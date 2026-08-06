@@ -7,6 +7,8 @@ from models.user import User
 from models.trade import Trade
 from models.broker_account import BrokerAccount
 from models.strategy_profile import StrategyProfile
+from models.strategy_source import StrategySource
+from models.ai_signal import AISignal, PaperTrade
 from models.partner import Partner, PartnerClick, SavedPartner
 # Core routes
 from routes.v1 import health
@@ -22,6 +24,8 @@ from routes.v1 import coach_v2
 from routes.v1 import recommendations
 from routes.v1 import ai_chat
 from routes.v1 import strategy_profiles
+from routes.v1 import strategy_sources
+from routes.v1 import ai_signals
 from routes.v1 import admin
 from routes.v1 import admin_users
 from routes.v1 import admin_subscriptions
@@ -259,4 +263,15 @@ app.include_router(
     prefix="/api/v1",
 )
 
+
+
+app.include_router(
+    strategy_sources.router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    ai_signals.router,
+    prefix="/api/v1",
+)
 

@@ -10,7 +10,7 @@ import {
   ChartNoAxesCombined,
   CreditCard,
   FileText,
-  FlaskConical,
+  FlaskConical, UploadCloud,
   LayoutDashboard,
   LockKeyhole,
   LogOut,
@@ -38,12 +38,24 @@ const premiumItems = [
   [
     "/strategy-lab",
     "Strategy Lab",
-    FlaskConical,
+    FlaskConical, UploadCloud,
   ],
   [
     "/setup-scorer",
     "Setup Scorer",
     Target,
+  ],  [
+    "/strategy-importer",
+    "AI Strategy Import",
+    UploadCloud,
+  ],  [
+    "/ai-signal-lab",
+    "AI Signal Lab",
+    Target,
+  ],  [
+    "/paper-trading",
+    "Paper Trading",
+    WalletCards,
   ],
 ] as const
 
@@ -231,3 +243,8 @@ export default function Shell() {
     </div>
   )
 }
+
+
+
+
+
