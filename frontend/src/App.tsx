@@ -1,4 +1,4 @@
-﻿import {
+import {
   Navigate,
   Outlet,
   Route,
@@ -20,6 +20,8 @@ import {
 } from "@/pages"
 
 import DashboardPage from "@/pages/DashboardPage"
+import AdvancedAnalyticsPage from "@/pages/AdvancedAnalyticsPage"
+import TradingCalendarPage from "@/pages/TradingCalendarPage"
 import StrategyLabPage from "@/pages/StrategyLabPage"
 import SetupScorerPage from "@/pages/SetupScorerPage"
 import StrategyImporterPage from "@/pages/StrategyImporterPage"
@@ -197,6 +199,16 @@ export default function App() {
         />
 
         <Route
+          path="/advanced-analytics"
+          element={<AdvancedAnalyticsPage />}
+        />
+
+        <Route
+          path="/trading-calendar"
+          element={<TradingCalendarPage />}
+        />
+
+        <Route
           path="/partners"
           element={<PartnersPage />}
         />
@@ -313,6 +325,9 @@ export default function App() {
     </Routes>
   )
 }
+
+
+
 
 
 

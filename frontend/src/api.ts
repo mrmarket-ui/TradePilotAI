@@ -1,6 +1,6 @@
 ﻿import axios from "axios"
 import type {LoginCredentials,LoginResponse,Trade,TradeListResponse,TradePayload} from "@/types"
-export const api=axios.create({baseURL:import.meta.env.VITE_API_BASE_URL||"http://127.0.0.1:8000/api/v1",timeout:15000,headers:{"Content-Type":"application/json"}})
+export const api=axios.create({baseURL:import.meta.env.VITE_API_BASE_URL||"http://127.0.0.1:8000/api/v1",timeout:60000,headers:{"Content-Type":"application/json"}})
 api.interceptors.request.use(c=>{const t=localStorage.getItem("tradepilot_access_token");if(t)c.headers.Authorization=`Bearer ${t}`;return c})
 api.interceptors.response.use(r=>r,e=>{if(e.response?.status===401){localStorage.removeItem("tradepilot_access_token");localStorage.removeItem("tradepilot_user");if(location.pathname!=="/login")location.href="/login"}return Promise.reject(e)})
 export async function loginUser(
@@ -71,4 +71,5 @@ export const cancelSubscription=async()=>(
     "/subscriptions/cancel"
   )
 ).data
+
 

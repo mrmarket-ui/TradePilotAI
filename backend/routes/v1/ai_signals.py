@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+from datetime import datetime
 from pathlib import Path
 from uuid import uuid4
 
@@ -457,13 +457,440 @@ def close_paper_trade(
         - trade.entry_price
     ) * multiplier
 
+    if trade.profit_loss > 0:
+        trade.result = "WIN"
+
+    elif trade.profit_loss < 0:
+        trade.result = "LOSS"
+
+    else:
+        trade.result = "BREAKEVEN"
+
+
+    risk_distance = None
+
+    if trade.stop_loss is not None:
+        risk_distance = abs(
+            trade.entry_price
+            - trade.stop_loss
+        )
+
+
+    if (
+        risk_distance is not None
+        and risk_distance > 0
+    ):
+        trade.r_multiple = round(
+            trade.profit_loss
+            / risk_distance,
+            3,
+        )
+
+    else:
+        trade.r_multiple = None
+
+
     trade.status = "closed"
 
     trade.closed_at = (
         datetime.utcnow()
     )
 
+
+    if trade.opened_at:
+        duration = (
+            trade.closed_at
+            - trade.opened_at
+        )
+
+        trade.duration_minutes = max(
+            0,
+            int(
+                duration.total_seconds()
+                // 60
+            ),
+        )
+
     db.commit()
     db.refresh(trade)
 
     return trade
+@router.get("/paper-trades/analytics")
+def get_paper_trade_analytics(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_premium_plan,
+    ),
+):
+    rows = (
+        db.query(
+            PaperTrade,
+            AISignal,
+            StrategyProfile,
+        )
+        .join(
+            AISignal,
+            PaperTrade.signal_id
+            == AISignal.id,
+        )
+        .outerjoin(
+            StrategyProfile,
+            AISignal.strategy_id
+            == StrategyProfile.id,
+        )
+        .filter(
+            PaperTrade.user_id
+            == current_user.id,
+            PaperTrade.status
+            == "closed",
+        )
+        .order_by(
+            PaperTrade.closed_at.desc()
+        )
+        .all()
+    )
+
+    closed_trades = len(rows)
+
+    wins = sum(
+        1
+        for trade, _, _ in rows
+        if trade.result == "WIN"
+    )
+
+    losses = sum(
+        1
+        for trade, _, _ in rows
+        if trade.result == "LOSS"
+    )
+
+    breakeven = sum(
+        1
+        for trade, _, _ in rows
+        if trade.result == "BREAKEVEN"
+    )
+
+    win_rate = (
+        round(
+            wins / closed_trades * 100,
+            2,
+        )
+        if closed_trades
+        else 0.0
+    )
+
+    r_values = [
+        trade.r_multiple
+        for trade, _, _ in rows
+        if trade.r_multiple is not None
+    ]
+
+    total_r = round(
+        sum(r_values),
+        3,
+    )
+
+    average_r = (
+        round(
+            total_r / len(r_values),
+            3,
+        )
+        if r_values
+        else 0.0
+    )
+
+    durations = [
+        trade.duration_minutes
+        for trade, _, _ in rows
+        if trade.duration_minutes
+        is not None
+    ]
+
+    average_duration_minutes = (
+        round(
+            sum(durations)
+            / len(durations),
+            1,
+        )
+        if durations
+        else 0.0
+    )
+
+    strategy_groups = {}
+
+    symbol_groups = {}
+
+    timeframe_groups = {}
+
+    confidence_groups = {
+        "60-69": [],
+        "70-79": [],
+        "80-89": [],
+        "90-100": [],
+    }
+
+    for trade, signal, strategy in rows:
+
+        strategy_name = (
+            strategy.name
+            if strategy
+            else "Unknown Strategy"
+        )
+
+        strategy_id = (
+            strategy.id
+            if strategy
+            else None
+        )
+
+        strategy_key = (
+            strategy_id,
+            strategy_name,
+        )
+
+        strategy_groups.setdefault(
+            strategy_key,
+            [],
+        ).append(trade)
+
+        symbol_groups.setdefault(
+            trade.symbol,
+            [],
+        ).append(trade)
+
+        timeframe = (
+            signal.timeframe
+            or "Unknown"
+        )
+
+        timeframe_groups.setdefault(
+            timeframe,
+            [],
+        ).append(trade)
+
+        confidence = (
+            signal.confidence
+            or 0
+        )
+
+        if 60 <= confidence < 70:
+            confidence_groups[
+                "60-69"
+            ].append(trade)
+
+        elif 70 <= confidence < 80:
+            confidence_groups[
+                "70-79"
+            ].append(trade)
+
+        elif 80 <= confidence < 90:
+            confidence_groups[
+                "80-89"
+            ].append(trade)
+
+        elif confidence >= 90:
+            confidence_groups[
+                "90-100"
+            ].append(trade)
+
+
+    def calculate_group_metrics(
+        grouped_trades,
+    ):
+        total = len(
+            grouped_trades
+        )
+
+        group_wins = sum(
+            1
+            for trade
+            in grouped_trades
+            if trade.result == "WIN"
+        )
+
+        group_losses = sum(
+            1
+            for trade
+            in grouped_trades
+            if trade.result == "LOSS"
+        )
+
+        group_breakeven = sum(
+            1
+            for trade
+            in grouped_trades
+            if trade.result
+            == "BREAKEVEN"
+        )
+
+        group_r_values = [
+            trade.r_multiple
+            for trade
+            in grouped_trades
+            if trade.r_multiple
+            is not None
+        ]
+
+        group_total_r = round(
+            sum(group_r_values),
+            3,
+        )
+
+        return {
+            "trades": total,
+
+            "wins":
+                group_wins,
+
+            "losses":
+                group_losses,
+
+            "breakeven":
+                group_breakeven,
+
+            "win_rate": (
+                round(
+                    group_wins
+                    / total
+                    * 100,
+                    2,
+                )
+                if total
+                else 0.0
+            ),
+
+            "total_r":
+                group_total_r,
+
+            "average_r": (
+                round(
+                    group_total_r
+                    / len(
+                        group_r_values
+                    ),
+                    3,
+                )
+                if group_r_values
+                else 0.0
+            ),
+        }
+
+
+    strategies = []
+
+    for (
+        strategy_id,
+        strategy_name,
+    ), grouped_trades in (
+        strategy_groups.items()
+    ):
+        strategies.append({
+            "strategy_id":
+                strategy_id,
+
+            "strategy_name":
+                strategy_name,
+
+            **calculate_group_metrics(
+                grouped_trades
+            ),
+        })
+
+
+    strategies.sort(
+        key=lambda item: (
+            item["total_r"],
+            item["win_rate"],
+        ),
+        reverse=True,
+    )
+
+
+    symbols = [
+        {
+            "symbol": symbol,
+            **calculate_group_metrics(
+                grouped_trades
+            ),
+        }
+        for symbol, grouped_trades
+        in symbol_groups.items()
+    ]
+
+    symbols.sort(
+        key=lambda item:
+            item["total_r"],
+        reverse=True,
+    )
+
+
+    timeframes = [
+        {
+            "timeframe": timeframe,
+            **calculate_group_metrics(
+                grouped_trades
+            ),
+        }
+        for timeframe, grouped_trades
+        in timeframe_groups.items()
+    ]
+
+    timeframes.sort(
+        key=lambda item:
+            item["total_r"],
+        reverse=True,
+    )
+
+
+    confidence_bands = [
+        {
+            "band": band,
+            **calculate_group_metrics(
+                grouped_trades
+            ),
+        }
+        for band, grouped_trades
+        in confidence_groups.items()
+        if grouped_trades
+    ]
+
+
+    return {
+        "summary": {
+            "closed_trades":
+                closed_trades,
+
+            "wins":
+                wins,
+
+            "losses":
+                losses,
+
+            "breakeven":
+                breakeven,
+
+            "win_rate":
+                win_rate,
+
+            "total_r":
+                total_r,
+
+            "average_r":
+                average_r,
+
+            "average_duration_minutes":
+                average_duration_minutes,
+        },
+
+        "strategies":
+            strategies,
+
+        "symbols":
+            symbols,
+
+        "timeframes":
+            timeframes,
+
+        "confidence_bands":
+            confidence_bands,
+    }

@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+from datetime import datetime
 
 from pydantic import (
     BaseModel,
@@ -253,3 +253,32 @@ class SetupScoreResponse(BaseModel):
         default_factory=dict,
     )
 
+
+
+
+class StrategyReviewResponse(BaseModel):
+    strategy_id: int
+    strategy_name: str
+
+    health_score: float
+    grade: str
+
+    strengths: list[str] = Field(
+        default_factory=list,
+    )
+
+    weaknesses: list[str] = Field(
+        default_factory=list,
+    )
+
+    missing_elements: list[str] = Field(
+        default_factory=list,
+    )
+
+    risk_assessment: str
+
+    priority_improvements: list[str] = Field(
+        default_factory=list,
+    )
+
+    summary: str

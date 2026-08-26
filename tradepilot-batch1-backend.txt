@@ -1,0 +1,792 @@
+
+============================================================
+FILE: backend\models\trade.py
+============================================================
+from datetime import datetime
+
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Float,
+    Boolean,
+    ForeignKey,
+    DateTime,
+)
+
+from sqlalchemy.orm import relationship
+
+from database.database import Base
+
+
+class Trade(Base):
+    __tablename__ = "trades"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    # Relationship
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id"),
+        nullable=False
+    )
+
+    # Broker Information
+    broker = Column(String, nullable=True)
+    ticket = Column(String, unique=True, index=True, nullable=True)
+
+    # Trade Information
+    pair = Column(String, nullable=False)
+    direction = Column(String, nullable=False)
+
+    entry = Column(Float, nullable=False)
+    exit_price = Column(Float, nullable=True)
+
+    stop_loss = Column(Float, nullable=False)
+    take_profit = Column(Float, nullable=False)
+
+    lot_size = Column(Float, nullable=True)
+
+    # Results
+    profit = Column(Float, nullable=True)
+    commission = Column(Float, default=0)
+    swap = Column(Float, default=0)
+
+    # MT5 Metadata
+    magic_number = Column(Integer, nullable=True)
+    comment = Column(String, nullable=True)
+
+    # Trading Journal
+    strategy = Column(String, nullable=True)
+    emotion = Column(String, nullable=True)
+    notes = Column(String, nullable=True)
+
+    # Times
+    opened_at = Column(DateTime, nullable=True)
+    closed_at = Column(DateTime, nullable=True)
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow
+    )
+
+    # Import Status
+    imported = Column(
+        Boolean,
+        default=False
+    )
+
+    # Relationship
+    user = relationship(
+        "User",
+        back_populates="trades"
+    )
+
+============================================================
+FILE: backend\schemas\trade.py
+============================================================
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class TradeBase(BaseModel):
+    broker: str | None = None
+    ticket: str | None = None
+
+    pair: str = Field(
+        min_length=1,
+        max_length=30,
+    )
+
+    direction: str = Field(
+        min_length=1,
+        max_length=10,
+    )
+
+    entry: float
+    exit_price: float | None = None
+
+    stop_loss: float
+    take_profit: float
+
+    lot_size: float | None = Field(
+        default=None,
+        ge=0,
+    )
+
+    profit: float | None = None
+    commission: float = 0
+    swap: float = 0
+
+    magic_number: int | None = None
+    comment: str | None = None
+
+    strategy: str | None = None
+    emotion: str | None = None
+    notes: str | None = None
+
+    opened_at: datetime | None = None
+    closed_at: datetime | None = None
+
+    imported: bool = False
+
+
+class TradeCreate(TradeBase):
+    pass
+
+
+class TradeUpdate(BaseModel):
+    broker: str | None = None
+    ticket: str | None = None
+
+    pair: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=30,
+    )
+
+    direction: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=10,
+    )
+
+    entry: float | None = None
+    exit_price: float | None = None
+
+    stop_loss: float | None = None
+    take_profit: float | None = None
+
+    lot_size: float | None = Field(
+        default=None,
+        ge=0,
+    )
+
+    profit: float | None = None
+    commission: float | None = None
+    swap: float | None = None
+
+    magic_number: int | None = None
+    comment: str | None = None
+
+    strategy: str | None = None
+    emotion: str | None = None
+    notes: str | None = None
+
+    opened_at: datetime | None = None
+    closed_at: datetime | None = None
+
+    imported: bool | None = None
+
+
+class TradeResponse(TradeBase):
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+    id: int
+    user_id: int
+    created_at: datetime
+
+
+class TradeListResponse(BaseModel):
+    total: int
+    trades: list[TradeResponse]
+
+============================================================
+FILE: backend\routes\v1\trade.py
+============================================================
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Query,
+    status,
+)
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from database.database import get_db
+from dependencies.auth import get_current_user
+
+from models.trade import Trade
+from models.user import User
+
+from schemas.trade import (
+    TradeCreate,
+    TradeUpdate,
+    TradeResponse,
+    TradeListResponse,
+)
+
+router = APIRouter(
+    prefix="/trades",
+    tags=["Trades"],
+)
+
+
+def get_trade(
+    db: Session,
+    user_id: int,
+    trade_id: int,
+):
+    trade = (
+        db.query(Trade)
+        .filter(
+            Trade.id == trade_id,
+            Trade.user_id == user_id,
+        )
+        .first()
+    )
+
+    if trade is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Trade not found.",
+        )
+
+    return trade
+
+
+@router.get(
+    "",
+    response_model=TradeListResponse,
+)
+def list_trades(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+
+    query = (
+        db.query(Trade)
+        .filter(
+            Trade.user_id == current_user.id
+        )
+    )
+
+    total = query.count()
+
+    trades = (
+        query.order_by(
+            Trade.created_at.desc()
+        )
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+    return {
+        "total": total,
+        "trades": trades,
+    }
+
+
+@router.post(
+    "",
+    response_model=TradeResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_trade(
+    payload: TradeCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+
+    data = payload.model_dump()
+
+    data["pair"] = data["pair"].upper().strip()
+    data["direction"] = data["direction"].upper().strip()
+
+    if data["direction"] not in ("BUY", "SELL"):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Direction must be BUY or SELL.",
+        )
+
+    trade = Trade(
+        user_id=current_user.id,
+        **data,
+    )
+
+    db.add(trade)
+
+    try:
+        db.commit()
+        db.refresh(trade)
+
+    except IntegrityError:
+
+        db.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Trade ticket already exists.",
+        )
+
+    return trade
+
+
+@router.get(
+    "/{trade_id}",
+    response_model=TradeResponse,
+)
+def get_trade_by_id(
+    trade_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+
+    return get_trade(
+        db,
+        current_user.id,
+        trade_id,
+    )
+
+
+@router.patch(
+    "/{trade_id}",
+    response_model=TradeResponse,
+)
+def update_trade(
+    trade_id: int,
+    payload: TradeUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+
+    trade = get_trade(
+        db,
+        current_user.id,
+        trade_id,
+    )
+
+    updates = payload.model_dump(
+        exclude_unset=True,
+    )
+
+    if "pair" in updates:
+        updates["pair"] = updates["pair"].upper().strip()
+
+    if "direction" in updates:
+
+        direction = updates["direction"].upper().strip()
+
+        if direction not in ("BUY", "SELL"):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="Direction must be BUY or SELL.",
+            )
+
+        updates["direction"] = direction
+
+    for field, value in updates.items():
+        setattr(
+            trade,
+            field,
+            value,
+        )
+
+    try:
+
+        db.commit()
+        db.refresh(trade)
+
+    except IntegrityError:
+
+        db.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Trade ticket already exists.",
+        )
+
+    return trade
+
+
+@router.delete(
+    "/{trade_id}",
+)
+def delete_trade(
+    trade_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+
+    trade = get_trade(
+        db,
+        current_user.id,
+        trade_id,
+    )
+
+    db.delete(trade)
+    db.commit()
+
+    return {
+        "success": True,
+        "message": "Trade deleted successfully.",
+    }
+
+============================================================
+FILE: backend\routes\v1\trading\journal.py
+============================================================
+
+============================================================
+FILE: backend\routes\v1\analytics.py
+============================================================
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
+from database.database import get_db
+from dependencies.auth import get_current_user
+from dependencies.subscription import (
+    require_paid_plan,
+)
+
+from models.user import User
+
+from services.dashboard.dashboard import (
+    get_dashboard,
+)
+from services.analysis.service import (
+    AnalysisService,
+)
+
+
+router = APIRouter(
+    prefix="/analytics",
+    tags=["Analytics"],
+)
+
+
+@router.get("/dashboard")
+def dashboard(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        get_current_user,
+    ),
+):
+    return get_dashboard(
+        db=db,
+        user_id=current_user.id,
+    )
+
+
+@router.get("/analysis")
+def analysis(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_paid_plan,
+    ),
+):
+    """
+    Complete premium intelligence pipeline.
+
+    Returns:
+    - Performance
+    - Risk
+    - Behaviour
+    - Psychology
+    - Consistency
+    - Trader DNA
+    - Recommendations
+    """
+
+    return AnalysisService.analyze(
+        db=db,
+        user_id=current_user.id,
+    )
+
+============================================================
+FILE: backend\routes\v1\trading\analytics.py
+============================================================
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
+from database.database import get_db
+from dependencies.auth import get_current_user
+from models.user import User
+
+from services.analytics.engine import calculate_statistics
+
+router = APIRouter(
+    prefix="/trading",
+    tags=["Analytics"]
+)
+
+
+@router.get("/analytics")
+def analytics(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return calculate_statistics(
+        db=db,
+        user_id=current_user.id
+    )
+
+============================================================
+FILE: backend\services\analytics\engine.py
+============================================================
+from __future__ import annotations
+
+from typing import Iterable
+
+from sqlalchemy.orm import Session
+
+from models.trade import Trade
+from services.analysis.loader import load_user_trades
+
+
+def calculate_statistics_from_trades(
+    trades: Iterable[Trade],
+) -> dict:
+    trades = list(trades)
+
+    if not trades:
+        return {
+            "total_trades": 0,
+            "wins": 0,
+            "losses": 0,
+            "breakeven": 0,
+            "win_rate": 0.0,
+            "net_profit": 0.0,
+            "gross_profit": 0.0,
+            "gross_loss": 0.0,
+            "average_win": 0.0,
+            "average_loss": 0.0,
+            "profit_factor": 0.0,
+            "best_trade": 0.0,
+            "worst_trade": 0.0,
+        }
+
+    wins = [
+        trade
+        for trade in trades
+        if float(trade.profit or 0) > 0
+    ]
+
+    losses = [
+        trade
+        for trade in trades
+        if float(trade.profit or 0) < 0
+    ]
+
+    breakeven = [
+        trade
+        for trade in trades
+        if float(trade.profit or 0) == 0
+    ]
+
+    gross_profit = sum(
+        float(trade.profit or 0)
+        for trade in wins
+    )
+
+    gross_loss = abs(
+        sum(
+            float(trade.profit or 0)
+            for trade in losses
+        )
+    )
+
+    total_trades = len(trades)
+    net_profit = gross_profit - gross_loss
+
+    average_win = (
+        gross_profit / len(wins)
+        if wins else 0.0
+    )
+
+    average_loss = (
+        gross_loss / len(losses)
+        if losses else 0.0
+    )
+
+    win_rate = (
+        len(wins) / total_trades * 100
+        if total_trades else 0.0
+    )
+
+    if gross_loss > 0:
+        profit_factor = gross_profit / gross_loss
+    elif gross_profit > 0:
+        profit_factor = gross_profit
+    else:
+        profit_factor = 0.0
+
+    profits = [
+        float(trade.profit or 0)
+        for trade in trades
+    ]
+
+    return {
+        "total_trades": total_trades,
+        "wins": len(wins),
+        "losses": len(losses),
+        "breakeven": len(breakeven),
+        "win_rate": round(win_rate, 2),
+        "net_profit": round(net_profit, 2),
+        "gross_profit": round(gross_profit, 2),
+        "gross_loss": round(gross_loss, 2),
+        "average_win": round(average_win, 2),
+        "average_loss": round(average_loss, 2),
+        "profit_factor": round(profit_factor, 2),
+        "best_trade": round(max(profits), 2),
+        "worst_trade": round(min(profits), 2),
+    }
+
+
+def calculate_statistics(
+    db: Session,
+    user_id: int,
+) -> dict:
+    trades = load_user_trades(
+        db=db,
+        user_id=user_id,
+    )
+
+    return calculate_statistics_from_trades(trades)
+
+============================================================
+FILE: backend\services\analytics\calculator.py
+============================================================
+
+============================================================
+FILE: backend\services\analytics\equity.py
+============================================================
+
+============================================================
+FILE: backend\services\analytics\sessions.py
+============================================================
+
+============================================================
+FILE: backend\services\consistency\symbols.py
+============================================================
+from collections import defaultdict
+
+
+def get_symbol(trade):
+
+    if hasattr(trade, "pair"):
+        return trade.pair
+
+    if hasattr(trade, "symbol"):
+        return trade.symbol
+
+    return "Unknown"
+
+
+def analyze_symbols(trades):
+
+    symbols = defaultdict(lambda: {
+        "trades": 0,
+        "wins": 0,
+        "losses": 0,
+        "profit": 0.0,
+        "average_profit": 0.0,
+        "average_loss": 0.0,
+        "gross_profit": 0.0,
+        "gross_loss": 0.0
+    })
+
+    for trade in trades:
+
+        symbol = get_symbol(trade)
+
+        profit = trade.profit or 0
+
+        stats = symbols[symbol]
+
+        stats["trades"] += 1
+
+        stats["profit"] += profit
+
+        if profit > 0:
+
+            stats["wins"] += 1
+
+            stats["gross_profit"] += profit
+
+        elif profit < 0:
+
+            stats["losses"] += 1
+
+            stats["gross_loss"] += abs(profit)
+
+    results = {}
+
+    for symbol, data in symbols.items():
+
+        trades_count = data["trades"]
+
+        wins = data["wins"]
+
+        losses = data["losses"]
+
+        avg_profit = (
+            data["gross_profit"] / wins
+            if wins else 0
+        )
+
+        avg_loss = (
+            data["gross_loss"] / losses
+            if losses else 0
+        )
+
+        win_rate = (
+            wins / trades_count * 100
+            if trades_count else 0
+        )
+
+        results[symbol] = {
+
+            "trades": trades_count,
+
+            "wins": wins,
+
+            "losses": losses,
+
+            "profit": round(data["profit"], 2),
+
+            "gross_profit": round(data["gross_profit"], 2),
+
+            "gross_loss": round(data["gross_loss"], 2),
+
+            "average_profit": round(avg_profit, 2),
+
+            "average_loss": round(avg_loss, 2),
+
+            "win_rate": round(win_rate, 2)
+
+        }
+
+    return results
+
+
+def best_symbol(trades):
+
+    data = analyze_symbols(trades)
+
+    if not data:
+        return None
+
+    return max(
+        data.items(),
+        key=lambda item: item[1]["profit"]
+    )
+
+
+def worst_symbol(trades):
+
+    data = analyze_symbols(trades)
+
+    if not data:
+        return None
+
+    return min(
+        data.items(),
+        key=lambda item: item[1]["profit"]
+    )

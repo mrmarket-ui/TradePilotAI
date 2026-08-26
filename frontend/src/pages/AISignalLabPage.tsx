@@ -1,4 +1,4 @@
-﻿import {
+import {
   BrainCircuit,
   CheckCircle2,
   Image as ImageIcon,
@@ -564,327 +564,545 @@ export default function AISignalLabPage() {
 
 
       {current && (
-        <section className="premium-card rounded-[2rem] p-7">
+        <section className="space-y-5">
 
-          <div className="flex flex-wrap items-center justify-between gap-6">
+          {/* Main verdict */}
+          <div
+            className={[
+              "premium-card overflow-hidden rounded-[2rem] border p-6 sm:p-8",
 
-            <div>
-              <p className="text-sm text-slate-500">
-                AI Decision
+              current.direction === "BUY"
+                ? "border-emerald-400/20"
+                : current.direction === "SELL"
+                ? "border-red-400/20"
+                : "border-amber-400/20",
+
+            ].join(" ")}
+          >
+
+            <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-start">
+
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
+                  TradePilot AI Decision
+                </p>
+
+                <div className="mt-4 flex flex-wrap items-center gap-4">
+
+                  <h2
+                    className={[
+                      "text-4xl font-bold tracking-tight sm:text-5xl",
+
+                      current.direction === "BUY"
+                        ? "text-emerald-300"
+                        : current.direction === "SELL"
+                        ? "text-red-300"
+                        : "text-amber-300",
+
+                    ].join(" ")}
+                  >
+                    {current.direction === "NO_TRADE"
+                      ? "NO TRADE"
+                      : current.direction}
+                  </h2>
+
+                  <span
+                    className={[
+                      "rounded-full border px-3 py-1 text-xs font-semibold",
+
+                      current.confidence >= 60 &&
+                      current.setup_score >= 60 &&
+                      current.direction !== "NO_TRADE"
+                        ? "border-emerald-400/20 bg-emerald-400/[0.07] text-emerald-300"
+                        : "border-amber-400/20 bg-amber-400/[0.07] text-amber-300",
+
+                    ].join(" ")}
+                  >
+                    {current.confidence >= 60 &&
+                    current.setup_score >= 60 &&
+                    current.direction !== "NO_TRADE"
+                      ? "TradePilot threshold passed"
+                      : "Setup rejected by threshold"}
+                  </span>
+
+                </div>
+
+                <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-400">
+                  {current.reasoning ||
+                    "TradePilot analyzed the chart against the selected strategy and generated this decision."}
+                </p>
+              </div>
+
+
+              <div className="grid min-w-[260px] grid-cols-2 gap-3">
+
+                <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
+                  <p className="text-xs uppercase tracking-[0.15em] text-slate-500">
+                    Symbol
+                  </p>
+
+                  <p className="mt-2 text-xl font-semibold">
+                    {current.symbol}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
+                  <p className="text-xs uppercase tracking-[0.15em] text-slate-500">
+                    Timeframe
+                  </p>
+
+                  <p className="mt-2 text-xl font-semibold">
+                    {current.timeframe || "?"}
+                  </p>
+                </div>
+
+              </div>
+
+            </div>
+
+
+            {/* Scores */}
+            <div className="mt-8 grid gap-4 md:grid-cols-2">
+
+              <div className="rounded-3xl border border-white/[0.07] bg-white/[0.025] p-5">
+
+                <div className="flex items-center justify-between gap-4">
+
+                  <div>
+                    <p className="text-sm text-slate-400">
+                      AI Confidence
+                    </p>
+
+                    <p className="mt-1 text-3xl font-semibold">
+                      {Math.round(current.confidence)}%
+                    </p>
+                  </div>
+
+                  <span className="text-xs text-slate-500">
+                    Minimum 60%
+                  </span>
+
+                </div>
+
+                <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.05]">
+                  <div
+                    className={[
+                      "h-full rounded-full transition-all duration-500",
+
+                      current.confidence >= 60
+                        ? "bg-emerald-400"
+                        : "bg-amber-400",
+
+                    ].join(" ")}
+                    style={{
+                      width: `${Math.min(
+                        100,
+                        Math.max(
+                          0,
+                          current.confidence,
+                        ),
+                      )}%`,
+                    }}
+                  />
+                </div>
+
+              </div>
+
+
+              <div className="rounded-3xl border border-white/[0.07] bg-white/[0.025] p-5">
+
+                <div className="flex items-center justify-between gap-4">
+
+                  <div>
+                    <p className="text-sm text-slate-400">
+                      Setup Quality
+                    </p>
+
+                    <p className="mt-1 text-3xl font-semibold">
+                      {Math.round(current.setup_score)}/100
+                    </p>
+                  </div>
+
+                  <span className="text-xs text-slate-500">
+                    Minimum 60
+                  </span>
+
+                </div>
+
+                <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.05]">
+                  <div
+                    className={[
+                      "h-full rounded-full transition-all duration-500",
+
+                      current.setup_score >= 60
+                        ? "bg-blue-400"
+                        : "bg-amber-400",
+
+                    ].join(" ")}
+                    style={{
+                      width: `${Math.min(
+                        100,
+                        Math.max(
+                          0,
+                          current.setup_score,
+                        ),
+                      )}%`,
+                    }}
+                  />
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          {/* Trade levels */}
+          <div className="premium-card rounded-[2rem] p-6">
+
+            <div className="flex flex-wrap items-center justify-between gap-4">
+
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-300">
+                  Trade Structure
+                </p>
+
+                <h3 className="mt-2 text-xl font-semibold">
+                  Entry, protection and targets
+                </h3>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2 text-sm">
+                Risk / Reward{" "}
+                <strong className="ml-1 text-blue-300">
+                  {current.risk_reward != null
+                    ? `${formatNumber(current.risk_reward)}R`
+                    : "?"}
+                </strong>
+              </div>
+
+            </div>
+
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+
+              <div className="rounded-2xl bg-white/[0.03] p-4">
+                <p className="text-xs text-slate-500">
+                  Entry Low
+                </p>
+
+                <p className="mt-2 font-semibold">
+                  {formatNumber(
+                    current.entry_low,
+                  )}
+                </p>
+              </div>
+
+
+              <div className="rounded-2xl bg-white/[0.03] p-4">
+                <p className="text-xs text-slate-500">
+                  Entry High
+                </p>
+
+                <p className="mt-2 font-semibold">
+                  {formatNumber(
+                    current.entry_high,
+                  )}
+                </p>
+              </div>
+
+
+              <div className="rounded-2xl border border-red-400/10 bg-red-400/[0.04] p-4">
+                <p className="text-xs text-red-300/70">
+                  Stop Loss
+                </p>
+
+                <p className="mt-2 font-semibold text-red-300">
+                  {formatNumber(
+                    current.stop_loss,
+                  )}
+                </p>
+              </div>
+
+
+              <div className="rounded-2xl border border-emerald-400/10 bg-emerald-400/[0.04] p-4">
+                <p className="text-xs text-emerald-300/70">
+                  TP1
+                </p>
+
+                <p className="mt-2 font-semibold text-emerald-300">
+                  {formatNumber(
+                    current.take_profit_1,
+                  )}
+                </p>
+              </div>
+
+
+              <div className="rounded-2xl border border-emerald-400/10 bg-emerald-400/[0.04] p-4">
+                <p className="text-xs text-emerald-300/70">
+                  TP2
+                </p>
+
+                <p className="mt-2 font-semibold text-emerald-300">
+                  {formatNumber(
+                    current.take_profit_2,
+                  )}
+                </p>
+              </div>
+
+
+              <div className="rounded-2xl border border-emerald-400/10 bg-emerald-400/[0.04] p-4">
+                <p className="text-xs text-emerald-300/70">
+                  TP3
+                </p>
+
+                <p className="mt-2 font-semibold text-emerald-300">
+                  {formatNumber(
+                    current.take_profit_3,
+                  )}
+                </p>
+              </div>
+
+
+              <div className="rounded-2xl bg-white/[0.03] p-4">
+                <p className="text-xs text-slate-500">
+                  R:R
+                </p>
+
+                <p className="mt-2 font-semibold">
+                  {current.risk_reward != null
+                    ? `1:${formatNumber(
+                        current.risk_reward,
+                      )}`
+                    : "?"}
+                </p>
+              </div>
+
+            </div>
+
+
+            {current.entry_low == null &&
+            current.entry_high == null &&
+            current.stop_loss == null &&
+            current.take_profit_1 == null ? (
+              <p className="mt-5 rounded-2xl border border-dashed border-white/10 p-4 text-sm text-slate-500">
+                TradePilot could not read reliable price levels from this screenshot, so no levels were invented.
+              </p>
+            ) : null}
+
+          </div>
+
+
+          {/* Strategy validation */}
+          <div className="grid gap-5 xl:grid-cols-2">
+
+            <div className="premium-card rounded-[2rem] p-6">
+
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="size-5 text-emerald-300"/>
+
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-emerald-300">
+                    Passed
+                  </p>
+
+                  <h3 className="mt-1 text-xl font-semibold">
+                    Matched Strategy Rules
+                  </h3>
+                </div>
+              </div>
+
+
+              <div className="mt-5 space-y-3">
+
+                {current.matched_rules?.length ? (
+                  current.matched_rules.map(
+                    (
+                      rule,
+                      index,
+                    ) => (
+                      <div
+                        key={`${rule}-${index}`}
+                        className="flex gap-3 rounded-2xl border border-emerald-400/10 bg-emerald-400/[0.04] p-4"
+                      >
+                        <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-300"/>
+
+                        <span className="text-sm leading-6 text-slate-300">
+                          {rule}
+                        </span>
+                      </div>
+                    ),
+                  )
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-white/10 p-6 text-center text-sm text-slate-500">
+                    No strategy rules were confidently matched.
+                  </div>
+                )}
+
+              </div>
+
+            </div>
+
+
+            <div className="premium-card rounded-[2rem] p-6">
+
+              <div className="flex items-center gap-3">
+                <XCircle className="size-5 text-red-300"/>
+
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-red-300">
+                    Missing
+                  </p>
+
+                  <h3 className="mt-1 text-xl font-semibold">
+                    Missing Confirmations
+                  </h3>
+                </div>
+              </div>
+
+
+              <div className="mt-5 space-y-3">
+
+                {current.missing_rules?.length ? (
+                  current.missing_rules.map(
+                    (
+                      rule,
+                      index,
+                    ) => (
+                      <div
+                        key={`${rule}-${index}`}
+                        className="flex gap-3 rounded-2xl border border-red-400/10 bg-red-400/[0.04] p-4"
+                      >
+                        <XCircle className="mt-0.5 size-4 shrink-0 text-red-300"/>
+
+                        <span className="text-sm leading-6 text-slate-300">
+                          {rule}
+                        </span>
+                      </div>
+                    ),
+                  )
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-white/10 p-6 text-center text-sm text-slate-500">
+                    No required confirmations are currently missing.
+                  </div>
+                )}
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          {/* Explanation */}
+          <div className="grid gap-5 xl:grid-cols-[1.3fr_0.7fr]">
+
+            <div className="premium-card rounded-[2rem] p-6">
+
+              <div className="flex items-center gap-3">
+                <BrainCircuit className="size-5 text-blue-300"/>
+
+                <h3 className="text-xl font-semibold">
+                  Why TradePilot made this decision
+                </h3>
+              </div>
+
+              <p className="mt-5 leading-7 text-slate-300">
+                {current.reasoning ||
+                  "No additional AI reasoning was returned for this signal."}
               </p>
 
-              <h2
-                className={[
-                  "mt-2 text-4xl font-bold",
+            </div>
 
-                  current.direction ===
-                  "BUY"
-                    ? "text-emerald-300"
-                    : current.direction ===
-                      "SELL"
-                    ? "text-red-300"
-                    : "text-amber-300",
+
+            <div className="premium-card rounded-[2rem] p-6">
+
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">
+                Invalidation
+              </p>
+
+              <h3 className="mt-2 text-xl font-semibold">
+                What cancels this setup?
+              </h3>
+
+              <p className="mt-4 text-sm leading-7 text-slate-300">
+                {current.invalidation ||
+                  "No explicit invalidation condition was identified."}
+              </p>
+
+            </div>
+
+          </div>
+
+
+          {/* Paper trading */}
+          <div className="premium-card rounded-[2rem] p-6">
+
+            <div className="flex flex-col justify-between gap-5 md:flex-row md:items-center">
+
+              <div>
+                <div className="flex items-center gap-3">
+                  <ShieldCheck className="size-5 text-emerald-300"/>
+
+                  <h3 className="text-xl font-semibold">
+                    Paper Trade Simulator
+                  </h3>
+                </div>
+
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+                  Test qualified AI setups without risking real capital.
+                </p>
+              </div>
+
+
+              <span
+                className={[
+                  "rounded-full border px-3 py-1 text-xs font-semibold",
+
+                  current.direction !== "NO_TRADE" &&
+                  current.confidence >= 60 &&
+                  current.setup_score >= 60
+                    ? "border-emerald-400/20 bg-emerald-400/[0.06] text-emerald-300"
+                    : "border-amber-400/20 bg-amber-400/[0.06] text-amber-300",
 
                 ].join(" ")}
               >
-                {
-                  current.direction
-                }
-              </h2>
-            </div>
-
-
-            <div>
-              <p className="text-sm text-slate-500">
-                Symbol
-              </p>
-
-              <p className="mt-2 text-2xl font-semibold">
-                {current.symbol}
-              </p>
-            </div>
-
-
-            <div>
-              <p className="text-sm text-slate-500">
-                Confidence
-              </p>
-
-              <p className="mt-2 text-3xl font-semibold">
-                {
-                  current.confidence
-                }%
-              </p>
-            </div>
-
-
-            <div>
-              <p className="text-sm text-slate-500">
-                Setup Score
-              </p>
-
-              <p className="mt-2 text-3xl font-semibold">
-                {
-                  current.setup_score
-                }/100
-              </p>
-            </div>
-
-          </div>
-
-
-          <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-
-            <div className="rounded-2xl bg-white/[.03] p-4">
-
-              <p className="text-xs text-slate-500">
-                Entry
-              </p>
-
-              <p className="mt-2 font-semibold">
-
-                {
-                  current.entry_low !=
-                    null &&
-                  current.entry_high !=
-                    null
-                    ? `${current.entry_low} – ${current.entry_high}`
-                    : formatNumber(
-                        current.entry_low ??
-                        current.entry_high,
-                      )
-                }
-
-              </p>
+                {current.direction !== "NO_TRADE" &&
+                current.confidence >= 60 &&
+                current.setup_score >= 60
+                  ? "Eligible for simulation"
+                  : "Simulation locked"}
+              </span>
 
             </div>
 
 
-            {[
-              [
-                "Stop Loss",
-                current.stop_loss,
-              ],
+            {current.direction !== "NO_TRADE" &&
+            current.confidence >= 60 &&
+            current.setup_score >= 60 ? (
 
-              [
-                "TP1",
-                current.take_profit_1,
-              ],
-
-              [
-                "TP2",
-                current.take_profit_2,
-              ],
-
-              [
-                "TP3",
-                current.take_profit_3,
-              ],
-
-              [
-                "Risk / Reward",
-                current.risk_reward,
-              ],
-
-            ].map(
-              ([
-                label,
-                value,
-              ]) => (
-                <div
-                  key={
-                    String(
-                      label,
-                    )
-                  }
-                  className="rounded-2xl bg-white/[.03] p-4"
-                >
-
-                  <p className="text-xs text-slate-500">
-                    {label}
-                  </p>
-
-                  <p className="mt-2 font-semibold">
-                    {
-                      formatNumber(
-                        value as
-                          | number
-                          | null
-                          | undefined,
-                      )
-                    }
-                  </p>
-
-                </div>
-              ),
-            )}
-
-          </div>
-
-
-          {current.reasoning && (
-            <div className="mt-6 rounded-2xl border border-blue-400/10 bg-blue-400/[.04] p-5">
-
-              <p className="font-semibold text-blue-300">
-                AI Reasoning
-              </p>
-
-              <p className="mt-3 leading-7 text-slate-300">
-                {
-                  current.reasoning
-                }
-              </p>
-
-            </div>
-          )}
-
-
-          {current
-            .matched_rules
-            ?.length >
-            0 && (
-            <div className="mt-6">
-
-              <p className="font-semibold text-emerald-300">
-                Matched Strategy Rules
-              </p>
-
-              <div className="mt-3 space-y-2">
-
-                {
-                  current
-                    .matched_rules
-                    .map(
-                      rule => (
-                        <div
-                          key={
-                            rule
-                          }
-                          className="flex gap-3 rounded-2xl bg-emerald-400/[.05] p-3 text-sm"
-                        >
-
-                          <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-300"/>
-
-                          <span>
-                            {rule}
-                          </span>
-
-                        </div>
-                      ),
-                    )
-                }
-
-              </div>
-
-            </div>
-          )}
-
-
-          {current
-            .missing_rules
-            ?.length >
-            0 && (
-            <div className="mt-6">
-
-              <p className="font-semibold text-red-300">
-                Missing Confirmations
-              </p>
-
-              <div className="mt-3 space-y-2">
-
-                {
-                  current
-                    .missing_rules
-                    .map(
-                      rule => (
-                        <div
-                          key={
-                            rule
-                          }
-                          className="flex gap-3 rounded-2xl bg-red-400/[.05] p-3 text-sm"
-                        >
-
-                          <XCircle className="mt-0.5 size-4 shrink-0 text-red-300"/>
-
-                          <span>
-                            {rule}
-                          </span>
-
-                        </div>
-                      ),
-                    )
-                }
-
-              </div>
-
-            </div>
-          )}
-
-
-          {current.invalidation && (
-            <div className="mt-6 rounded-2xl bg-amber-400/[.05] p-5">
-
-              <p className="font-semibold text-amber-300">
-                Setup Invalidation
-              </p>
-
-              <p className="mt-2 text-sm leading-6 text-slate-300">
-                {
-                  current
-                    .invalidation
-                }
-              </p>
-
-            </div>
-          )}
-
-
-          {current.direction !==
-            "NO_TRADE" && (
-            <div className="mt-7 border-t border-white/10 pt-6">
-
-              <h3 className="text-xl font-semibold">
-                Paper Trade Simulator
-              </h3>
-
-              <p className="mt-2 text-sm text-slate-400">
-                Test the setup without risking real money.
-              </p>
-
-
-              <div className="mt-5 flex flex-wrap gap-3">
+              <div className="mt-6 flex flex-wrap gap-3">
 
                 <input
-                  value={
-                    entry
-                  }
-                  onChange={(
-                    event,
-                  ) =>
+                  value={entry}
+                  onChange={event =>
                     setEntry(
-                      event
-                        .target
-                        .value,
+                      event.target.value,
                     )
                   }
                   type="number"
                   step="any"
                   placeholder="Entry price"
-                  className="rounded-2xl border border-white/10 bg-white/[.03] px-4 py-3 outline-none"
+                  className="min-w-[180px] rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 outline-none"
                 />
 
 
                 <input
-                  value={
-                    riskPercent
-                  }
-                  onChange={(
-                    event,
-                  ) =>
+                  value={riskPercent}
+                  onChange={event =>
                     setRiskPercent(
-                      event
-                        .target
-                        .value,
+                      event.target.value,
                     )
                   }
                   type="number"
@@ -892,7 +1110,7 @@ export default function AISignalLabPage() {
                   max="10"
                   step="0.1"
                   placeholder="Risk %"
-                  className="w-32 rounded-2xl border border-white/10 bg-white/[.03] px-4 py-3 outline-none"
+                  className="w-36 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 outline-none"
                 />
 
 
@@ -900,32 +1118,43 @@ export default function AISignalLabPage() {
                   type="button"
                   disabled={
                     !entry ||
-                    paperMutation
-                      .isPending
+                    paperMutation.isPending
                   }
-                  onClick={
-                    startPaperTrade
-                  }
-                  className="flex items-center gap-2 rounded-2xl bg-emerald-500 px-5 py-3 font-semibold disabled:opacity-50"
+                  onClick={startPaperTrade}
+                  className="flex items-center gap-2 rounded-2xl bg-emerald-500 px-5 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
                 >
 
-                  {paperMutation
-                    .isPending
-                    ? (
-                      <Loader2 className="size-4 animate-spin"/>
-                    )
-                    : (
-                      <ShieldCheck className="size-4"/>
-                    )}
+                  {paperMutation.isPending ? (
+                    <Loader2 className="size-4 animate-spin"/>
+                  ) : (
+                    <ShieldCheck className="size-4"/>
+                  )}
 
-                  Open Paper Trade
+                  {paperMutation.isPending
+                    ? "Opening..."
+                    : "Send to Paper Trade"}
 
                 </button>
 
               </div>
 
-            </div>
-          )}
+            ) : (
+
+              <div className="mt-6 rounded-2xl border border-amber-400/10 bg-amber-400/[0.04] p-5">
+
+                <p className="font-medium text-amber-300">
+                  This setup cannot be paper traded.
+                </p>
+
+                <p className="mt-2 text-sm leading-6 text-slate-400">
+                  TradePilot requires a BUY or SELL decision with at least 60% confidence and a setup score of at least 60.
+                </p>
+
+              </div>
+
+            )}
+
+          </div>
 
         </section>
       )}

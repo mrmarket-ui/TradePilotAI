@@ -1,17 +1,42 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from typing import Iterable
 
 from sqlalchemy.orm import Session
 
 from models.trade import Trade
-from services.analysis.loader import load_user_trades
+
+from services.analysis.loader import (
+    load_user_trades,
+)
+
+from services.analytics.calculator import (
+    calculate_expectancy,
+    calculate_r_statistics,
+    calculate_streaks,
+    group_performance,
+)
+
+from services.analytics.equity import (
+    build_equity_curve,
+    calculate_drawdown,
+)
+
+from services.analytics.sessions import (
+    analyze_sessions,
+)
+
+from services.consistency.symbols import (
+    analyze_symbols,
+)
 
 
 def calculate_statistics_from_trades(
     trades: Iterable[Trade],
 ) -> dict:
-    trades = list(trades)
+    trades = list(
+        trades
+    )
 
     if not trades:
         return {
@@ -32,78 +57,239 @@ def calculate_statistics_from_trades(
 
     wins = [
         trade
-        for trade in trades
-        if float(trade.profit or 0) > 0
+        for trade
+        in trades
+        if float(
+            trade.profit
+            or 0
+        ) > 0
     ]
 
     losses = [
         trade
-        for trade in trades
-        if float(trade.profit or 0) < 0
+        for trade
+        in trades
+        if float(
+            trade.profit
+            or 0
+        ) < 0
     ]
 
     breakeven = [
         trade
-        for trade in trades
-        if float(trade.profit or 0) == 0
+        for trade
+        in trades
+        if float(
+            trade.profit
+            or 0
+        ) == 0
     ]
 
     gross_profit = sum(
-        float(trade.profit or 0)
-        for trade in wins
+        float(
+            trade.profit
+            or 0
+        )
+        for trade
+        in wins
     )
 
     gross_loss = abs(
         sum(
-            float(trade.profit or 0)
-            for trade in losses
+            float(
+                trade.profit
+                or 0
+            )
+            for trade
+            in losses
         )
     )
 
-    total_trades = len(trades)
-    net_profit = gross_profit - gross_loss
+    total_trades = len(
+        trades
+    )
+
+    net_profit = (
+        gross_profit -
+        gross_loss
+    )
 
     average_win = (
-        gross_profit / len(wins)
-        if wins else 0.0
+        gross_profit /
+        len(wins)
+        if wins
+        else 0.0
     )
 
     average_loss = (
-        gross_loss / len(losses)
-        if losses else 0.0
+        gross_loss /
+        len(losses)
+        if losses
+        else 0.0
     )
 
     win_rate = (
-        len(wins) / total_trades * 100
-        if total_trades else 0.0
+        len(wins) /
+        total_trades *
+        100
+        if total_trades
+        else 0.0
     )
 
     if gross_loss > 0:
-        profit_factor = gross_profit / gross_loss
+        profit_factor = (
+            gross_profit /
+            gross_loss
+        )
+
     elif gross_profit > 0:
-        profit_factor = gross_profit
+        profit_factor = (
+            gross_profit
+        )
+
     else:
         profit_factor = 0.0
 
     profits = [
-        float(trade.profit or 0)
-        for trade in trades
+        float(
+            trade.profit
+            or 0
+        )
+        for trade
+        in trades
     ]
 
     return {
-        "total_trades": total_trades,
-        "wins": len(wins),
-        "losses": len(losses),
-        "breakeven": len(breakeven),
-        "win_rate": round(win_rate, 2),
-        "net_profit": round(net_profit, 2),
-        "gross_profit": round(gross_profit, 2),
-        "gross_loss": round(gross_loss, 2),
-        "average_win": round(average_win, 2),
-        "average_loss": round(average_loss, 2),
-        "profit_factor": round(profit_factor, 2),
-        "best_trade": round(max(profits), 2),
-        "worst_trade": round(min(profits), 2),
+        "total_trades":
+            total_trades,
+
+        "wins":
+            len(wins),
+
+        "losses":
+            len(losses),
+
+        "breakeven":
+            len(breakeven),
+
+        "win_rate":
+            round(
+                win_rate,
+                2,
+            ),
+
+        "net_profit":
+            round(
+                net_profit,
+                2,
+            ),
+
+        "gross_profit":
+            round(
+                gross_profit,
+                2,
+            ),
+
+        "gross_loss":
+            round(
+                gross_loss,
+                2,
+            ),
+
+        "average_win":
+            round(
+                average_win,
+                2,
+            ),
+
+        "average_loss":
+            round(
+                average_loss,
+                2,
+            ),
+
+        "profit_factor":
+            round(
+                profit_factor,
+                2,
+            ),
+
+        "best_trade":
+            round(
+                max(profits),
+                2,
+            ),
+
+        "worst_trade":
+            round(
+                min(profits),
+                2,
+            ),
+    }
+
+
+def calculate_advanced_statistics_from_trades(
+    trades: Iterable[Trade],
+) -> dict:
+    trades = list(
+        trades
+    )
+
+    core = (
+        calculate_statistics_from_trades(
+            trades
+        )
+    )
+
+    return {
+        **core,
+
+        "expectancy":
+            calculate_expectancy(
+                trades
+            ),
+
+        "streaks":
+            calculate_streaks(
+                trades
+            ),
+
+        "r_multiple":
+            calculate_r_statistics(
+                trades
+            ),
+
+        "drawdown":
+            calculate_drawdown(
+                trades
+            ),
+
+        "equity_curve":
+            build_equity_curve(
+                trades
+            ),
+
+        "by_symbol":
+            analyze_symbols(
+                trades
+            ),
+
+        "by_session":
+            analyze_sessions(
+                trades
+            ),
+
+        "by_strategy":
+            group_performance(
+                trades,
+                "strategy",
+            ),
+
+        "by_emotion":
+            group_performance(
+                trades,
+                "emotion",
+            ),
     }
 
 
@@ -111,9 +297,15 @@ def calculate_statistics(
     db: Session,
     user_id: int,
 ) -> dict:
-    trades = load_user_trades(
-        db=db,
-        user_id=user_id,
+    trades = (
+        load_user_trades(
+            db=db,
+            user_id=user_id,
+        )
     )
 
-    return calculate_statistics_from_trades(trades)
+    return (
+        calculate_advanced_statistics_from_trades(
+            trades
+        )
+    )

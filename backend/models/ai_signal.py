@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+from datetime import datetime
 
 from sqlalchemy import (
     Boolean,
@@ -225,6 +225,21 @@ class PaperTrade(Base):
 
     profit_loss = Column(
         Float,
+        nullable=True,
+    )
+
+    result = Column(
+        String(20),
+        nullable=True,
+    )
+
+    r_multiple = Column(
+        Float,
+        nullable=True,
+    )
+
+    duration_minutes = Column(
+        Integer,
         nullable=True,
     )
 

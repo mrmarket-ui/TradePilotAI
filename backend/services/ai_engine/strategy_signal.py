@@ -1,14 +1,41 @@
-﻿import base64
+import base64
 import json
 import mimetypes
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
 from openai import OpenAI
 
+from google import genai
+from google.genai import types
 
-def get_client() -> OpenAI:
-    key = os.getenv("OPENAI_API_KEY")
+
+load_dotenv()
+
+
+AI_PROVIDER = os.getenv(
+    "AI_PROVIDER",
+    "gemini",
+).strip().lower()
+
+
+OPENAI_MODEL = os.getenv(
+    "OPENAI_MODEL",
+    "gpt-5.6-terra",
+)
+
+
+GEMINI_MODEL = os.getenv(
+    "GEMINI_MODEL",
+    "gemini-2.5-flash",
+)
+
+
+def get_openai_client() -> OpenAI:
+    key = os.getenv(
+        "OPENAI_API_KEY"
+    )
 
     if not key:
         raise RuntimeError(
@@ -20,15 +47,26 @@ def get_client() -> OpenAI:
     )
 
 
-def get_model() -> str:
-    model = os.getenv("OPENAI_MODEL")
+def get_gemini_client():
+    key = os.getenv(
+        "GEMINI_API_KEY"
+    )
 
-    if not model:
+    if not key:
         raise RuntimeError(
-            "OPENAI_MODEL is not configured."
+            "GEMINI_API_KEY is not configured."
         )
 
-    return model
+    return genai.Client(
+        api_key=key,
+        http_options=types.HttpOptions(
+            timeout=20000,
+            retry_options=
+                types.HttpRetryOptions(
+                    attempts=1,
+                ),
+        ),
+    )
 
 
 def clean_json(
@@ -54,57 +92,59 @@ def strategy_context(
     strategy,
 ) -> dict:
     return {
-        "name": strategy.name,
-        "markets": strategy.markets,
+        "name":
+            strategy.name,
+
+        "markets":
+            strategy.markets,
+
         "allowed_symbols":
             strategy.allowed_symbols,
+
         "blocked_symbols":
             strategy.blocked_symbols,
+
         "preferred_direction":
             strategy.preferred_direction,
-        "sessions": strategy.sessions,
-        "timeframes": strategy.timeframes,
+
+        "sessions":
+            strategy.sessions,
+
+        "timeframes":
+            strategy.timeframes,
+
         "entry_rules":
             strategy.entry_rules,
+
         "confirmations":
             strategy.confirmations,
+
         "exit_rules":
             strategy.exit_rules,
+
         "trade_management_rules":
             strategy.trade_management_rules,
+
         "max_risk_percent":
             strategy.max_risk_percent,
+
         "min_risk_reward":
             strategy.min_risk_reward,
+
         "max_trades_per_day":
             strategy.max_trades_per_day,
+
         "max_consecutive_losses":
             strategy.max_consecutive_losses,
     }
 
 
-def analyze_chart(
-    image_path: str,
+def build_prompt(
     strategy,
     symbol: str,
     timeframe: str,
-) -> dict:
-    mime = (
-        mimetypes.guess_type(
-            image_path
-        )[0]
-        or "image/jpeg"
-    )
-
-    encoded = base64.b64encode(
-        Path(image_path).read_bytes()
-    ).decode("ascii")
-
-    data_url = (
-        f"data:{mime};base64,{encoded}"
-    )
-
-    prompt = f"""
+) -> str:
+    return f"""
 You are TradePilot AI's strategy-validation engine.
 
 Analyze the uploaded trading chart ONLY against
@@ -158,35 +198,138 @@ or entry conditions are missing.
 Never claim guaranteed profit.
 """
 
-    client = get_client()
 
-    response = client.responses.create(
-        model=get_model(),
-        input=[
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type":
-                            "input_text",
-                        "text":
-                            prompt,
-                    },
-                    {
-                        "type":
-                            "input_image",
-                        "image_url":
-                            data_url,
-                    },
-                ],
-            },
-        ],
+def analyze_chart_openai(
+    image_path: str,
+    strategy,
+    symbol: str,
+    timeframe: str,
+) -> dict:
+    mime = (
+        mimetypes.guess_type(
+            image_path
+        )[0]
+        or "image/jpeg"
     )
 
-    result = clean_json(
+    encoded = base64.b64encode(
+        Path(
+            image_path
+        ).read_bytes()
+    ).decode(
+        "ascii"
+    )
+
+    data_url = (
+        f"data:{mime};base64,{encoded}"
+    )
+
+    prompt = build_prompt(
+        strategy,
+        symbol,
+        timeframe,
+    )
+
+    client = (
+        get_openai_client()
+    )
+
+    response = (
+        client.responses.create(
+            model=OPENAI_MODEL,
+            input=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type":
+                                "input_text",
+                            "text":
+                                prompt,
+                        },
+                        {
+                            "type":
+                                "input_image",
+                            "image_url":
+                                data_url,
+                        },
+                    ],
+                },
+            ],
+        )
+    )
+
+    return clean_json(
         response.output_text
     )
 
+
+def analyze_chart_gemini(
+    image_path: str,
+    strategy,
+    symbol: str,
+    timeframe: str,
+) -> dict:
+    image = Path(
+        image_path
+    )
+
+    if not image.exists():
+        raise FileNotFoundError(
+            "Chart image file not found."
+        )
+
+    mime = (
+        mimetypes.guess_type(
+            str(image)
+        )[0]
+        or "image/jpeg"
+    )
+
+    prompt = build_prompt(
+        strategy,
+        symbol,
+        timeframe,
+    )
+
+    client = (
+        get_gemini_client()
+    )
+
+    response = (
+        client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=[
+                prompt,
+
+                types.Part.from_bytes(
+                    data=image.read_bytes(),
+                    mime_type=mime,
+                ),
+            ],
+            config=
+                types.GenerateContentConfig(
+                    response_mime_type=
+                        "application/json",
+
+                    temperature=0.1,
+                ),
+        )
+    )
+
+    if not response.text:
+        raise RuntimeError(
+            "Gemini returned no signal analysis."
+        )
+
+    return clean_json(
+        response.text
+    )
+
+
+def normalize_result(
+    result: dict,
+) -> dict:
     direction = str(
         result.get(
             "direction",
@@ -201,9 +344,14 @@ Never claim guaranteed profit.
     }:
         direction = "NO_TRADE"
 
-    result["direction"] = direction
+    result[
+        "direction"
+    ] = direction
 
-    result["confidence"] = min(
+
+    result[
+        "confidence"
+    ] = min(
         100,
         max(
             0,
@@ -217,7 +365,10 @@ Never claim guaranteed profit.
         ),
     )
 
-    result["setup_score"] = min(
+
+    result[
+        "setup_score"
+    ] = min(
         100,
         max(
             0,
@@ -231,4 +382,63 @@ Never claim guaranteed profit.
         ),
     )
 
+
+    if not isinstance(
+        result.get(
+            "matched_rules"
+        ),
+        list,
+    ):
+        result[
+            "matched_rules"
+        ] = []
+
+
+    if not isinstance(
+        result.get(
+            "missing_rules"
+        ),
+        list,
+    ):
+        result[
+            "missing_rules"
+        ] = []
+
+
     return result
+
+
+def analyze_chart(
+    image_path: str,
+    strategy,
+    symbol: str,
+    timeframe: str,
+) -> dict:
+    if AI_PROVIDER == "gemini":
+        result = (
+            analyze_chart_gemini(
+                image_path=image_path,
+                strategy=strategy,
+                symbol=symbol,
+                timeframe=timeframe,
+            )
+        )
+
+    elif AI_PROVIDER == "openai":
+        result = (
+            analyze_chart_openai(
+                image_path=image_path,
+                strategy=strategy,
+                symbol=symbol,
+                timeframe=timeframe,
+            )
+        )
+
+    else:
+        raise RuntimeError(
+            f"Unsupported AI_PROVIDER: {AI_PROVIDER}"
+        )
+
+    return normalize_result(
+        result
+    )

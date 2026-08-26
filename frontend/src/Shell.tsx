@@ -1,10 +1,11 @@
-﻿import {
-  NavLink,
+﻿import {NavLink,
   Outlet,
 } from "react-router-dom"
 
 import {
-  BarChart3,
+Activity,
+CalendarDays,
+BarChart3,
   BrainCircuit,
   Building2,
   ChartNoAxesCombined,
@@ -21,14 +22,16 @@ import {
   WalletCards,
 } from "lucide-react"
 
-import { useAuth } from "@/Auth"
-import { useTranslation } from "react-i18next"
+import {useAuth } from "@/Auth"
+import {useTranslation } from "react-i18next"
 
 
 const standardItems = [
   ["/dashboard", "Dashboard", LayoutDashboard],
   ["/trades", "Trade Journal", WalletCards],
+["/trading-calendar", "Trading Calendar", CalendarDays],
   ["/analytics", "Analytics", BarChart3],
+  ["/advanced-analytics", "Advanced Analytics", Activity],
   ["/trader-dna", "Trader DNA", BrainCircuit],
   ["/coach", "AI Coach", Sparkles],
 ] as const
@@ -199,7 +202,7 @@ export default function Shell() {
 
             <p className="mt-1 font-semibold capitalize">
               {user?.is_admin
-                ? "Owner · Premium"
+                ? "Owner - Premium"
                 : plan}
             </p>
           </div>
@@ -243,6 +246,13 @@ export default function Shell() {
     </div>
   )
 }
+
+
+
+
+
+
+
 
 
 

@@ -1,4 +1,4 @@
-﻿export type StrategyProfile = {
+export type StrategyProfile = {
   id: number
   user_id: number
 
@@ -258,4 +258,30 @@ export function formToStrategyPayload(
 
     is_active: form.is_active,
   }
+}
+
+
+
+export type StrategyReviewResponse = {
+  strategy_id: number
+  strategy_name: string
+
+  health_score: number
+
+  grade:
+    | "Excellent"
+    | "Strong"
+    | "Developing"
+    | "Weak"
+    | "Incomplete"
+
+  strengths: string[]
+  weaknesses: string[]
+  missing_elements: string[]
+
+  risk_assessment: string
+
+  priority_improvements: string[]
+
+  summary: string
 }

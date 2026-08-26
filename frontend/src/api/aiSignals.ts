@@ -1,4 +1,4 @@
-﻿import {api} from "@/api"
+import {api} from "@/api"
 
 
 export type AISignal = {
@@ -70,6 +70,10 @@ export type PaperTrade = {
   exit_price?: number | null
   profit_loss?: number | null
 
+  result?: "WIN" | "LOSS" | "BREAKEVEN" | null
+  r_multiple?: number | null
+  duration_minutes?: number | null
+
   opened_at: string
   closed_at?: string | null
 }
@@ -78,6 +82,57 @@ export type PaperTrade = {
 export type PaperTradeHistoryResponse = {
   total: number
   trades: PaperTrade[]
+}
+
+
+export type PerformanceMetrics = {
+  trades: number
+  wins: number
+  losses: number
+  breakeven: number
+  win_rate: number
+  total_r: number
+  average_r: number
+}
+
+
+export type StrategyPerformance = PerformanceMetrics & {
+  strategy_id?: number | null
+  strategy_name: string
+}
+
+
+export type SymbolPerformance = PerformanceMetrics & {
+  symbol: string
+}
+
+
+export type TimeframePerformance = PerformanceMetrics & {
+  timeframe: string
+}
+
+
+export type ConfidencePerformance = PerformanceMetrics & {
+  band: string
+}
+
+
+export type PaperTradeAnalytics = {
+  summary: {
+    closed_trades: number
+    wins: number
+    losses: number
+    breakeven: number
+    win_rate: number
+    total_r: number
+    average_r: number
+    average_duration_minutes: number
+  }
+
+  strategies: StrategyPerformance[]
+  symbols: SymbolPerformance[]
+  timeframes: TimeframePerformance[]
+  confidence_bands: ConfidencePerformance[]
 }
 
 
@@ -188,6 +243,17 @@ Promise<PaperTradeHistoryResponse> {
   const response =
     await api.get<PaperTradeHistoryResponse>(
       "/ai-signals/paper-trades",
+    )
+
+  return response.data
+}
+
+
+export async function getPaperTradeAnalytics():
+Promise<PaperTradeAnalytics> {
+  const response =
+    await api.get<PaperTradeAnalytics>(
+      "/ai-signals/paper-trades/analytics",
     )
 
   return response.data

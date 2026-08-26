@@ -3,3 +3,11 @@ dist/
 .env
 .vscode/
 *.local
+
+# Android release signing
+tradepilot-upload-key.jks
+keystore.properties
+
+# Android release signing
+tradepilot-upload-key.jks
+keystore.properties

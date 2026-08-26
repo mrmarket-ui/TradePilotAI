@@ -1,10 +1,11 @@
-﻿from fastapi import FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database.database import Base, engine
 
 # Import models so SQLAlchemy registers their tables
 from models.user import User
 from models.trade import Trade
+from models.trade_attachment import TradeAttachment
 from models.broker_account import BrokerAccount
 from models.strategy_profile import StrategyProfile
 from models.strategy_source import StrategySource
@@ -16,6 +17,7 @@ from routes.v1 import auth
 from routes.v1 import profile
 from routes.v1 import brokers
 from routes.v1 import trade
+from routes.v1 import trade_attachments
 from routes.v1 import analytics
 from routes.v1 import analytics_charts
 from routes.v1 import risk
@@ -107,6 +109,12 @@ app.include_router(
     trade.router,
     prefix="/api/v1",
     tags=["Trades"],
+)
+
+
+app.include_router(
+    trade_attachments.router,
+    prefix="/api/v1",
 )
 
 # Trading sync

@@ -77,3 +77,10 @@ class Trade(Base):
         "User",
         back_populates="trades"
     )
+
+    attachments = relationship(
+        "TradeAttachment",
+        back_populates="trade",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )

@@ -1,4 +1,9 @@
-﻿from fastapi import (
+from concurrent.futures import (
+    ThreadPoolExecutor,
+    TimeoutError as FutureTimeoutError,
+)
+
+from fastapi import (
     APIRouter,
     Depends,
     HTTPException,
@@ -17,6 +22,7 @@ from schemas.strategy_profile import (
     StrategyProfileCreate,
     StrategyProfileResponse,
     StrategyProfileUpdate,
+    StrategyReviewResponse,
 )
 
 from services.strategy_lab.crud import (
@@ -36,6 +42,10 @@ from services.strategy_lab.validator import (
     validate_strategy_create,
     validate_strategy_update,
 )
+
+from services.ai_engine.strategy_review import (
+    review_strategy,
+)
 from dependencies.subscription import (
     require_premium_plan,
 )
@@ -43,6 +53,14 @@ from dependencies.subscription import (
 router = APIRouter(
     prefix="/strategies",
     tags=["Strategy Brain"],
+)
+
+
+_strategy_review_executor = (
+    ThreadPoolExecutor(
+        max_workers=4,
+        thread_name_prefix="strategy-review",
+    )
 )
 
 
@@ -222,3 +240,73 @@ def score_strategy_setup(
         strategy=strategy,
         payload=payload,
     )
+
+
+
+@router.post(
+    "/{strategy_id}/review",
+    response_model=StrategyReviewResponse,
+)
+def review_strategy_profile(
+    strategy_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_premium_plan,
+    ),
+):
+    strategy = get_owned_strategy(
+        db=db,
+        user_id=current_user.id,
+        strategy_id=strategy_id,
+    )
+
+    try:
+        future = (
+            _strategy_review_executor.submit(
+                review_strategy,
+                strategy,
+            )
+        )
+
+        result = future.result(
+            timeout=45
+        )
+
+    except FutureTimeoutError as exc:
+        future.cancel()
+
+        raise HTTPException(
+            status_code=
+                status.HTTP_504_GATEWAY_TIMEOUT,
+            detail=(
+                "AI strategy review took too long. "
+                "Please try again."
+            ),
+        ) from exc
+
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=
+                status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(exc),
+        ) from exc
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=
+                status.HTTP_502_BAD_GATEWAY,
+            detail=(
+                "Unable to complete "
+                "AI strategy review."
+            ),
+        ) from exc
+
+    return {
+        "strategy_id":
+            strategy.id,
+
+        "strategy_name":
+            strategy.name,
+
+        **result,
+    }

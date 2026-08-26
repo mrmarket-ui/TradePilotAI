@@ -1,4 +1,4 @@
-﻿import api from "@/api/client"
+import api from "@/api/client"
 
 import type {
   SetupScorePayload,
@@ -6,6 +6,7 @@ import type {
   StrategyCreatePayload,
   StrategyListResponse,
   StrategyProfile,
+  StrategyReviewResponse,
   StrategyUpdatePayload,
 } from "@/types/strategy"
 
@@ -83,6 +84,19 @@ export async function scoreStrategySetup(
     `/strategies/${strategyId}/score`,
     payload,
   )
+
+  return response.data
+}
+
+
+
+export async function reviewStrategy(
+  strategyId: number,
+): Promise<StrategyReviewResponse> {
+  const response =
+    await api.post<StrategyReviewResponse>(
+      `/strategies/${strategyId}/review`,
+    )
 
   return response.data
 }
