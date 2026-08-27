@@ -23,6 +23,7 @@ from schemas.strategy_profile import (
     StrategyProfileResponse,
     StrategyProfileUpdate,
     StrategyReviewResponse,
+    StrategyImprovementResponse,
 )
 
 from services.strategy_lab.crud import (
@@ -45,6 +46,10 @@ from services.strategy_lab.validator import (
 
 from services.ai_engine.strategy_review import (
     review_strategy,
+)
+
+from services.ai_engine.strategy_improvement import (
+    improve_strategy,
 )
 from dependencies.subscription import (
     require_premium_plan,
@@ -309,4 +314,92 @@ def review_strategy_profile(
             strategy.name,
 
         **result,
+    }
+
+
+
+@router.post(
+    "/{strategy_id}/improve",
+    response_model=
+        StrategyImprovementResponse,
+)
+def improve_strategy_profile(
+    strategy_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_premium_plan,
+    ),
+):
+    strategy = get_owned_strategy(
+        db=db,
+        user_id=current_user.id,
+        strategy_id=strategy_id,
+    )
+
+    future = None
+
+    try:
+        future = (
+            _strategy_review_executor.submit(
+                improve_strategy,
+                strategy,
+            )
+        )
+
+        result = future.result(
+            timeout=45
+        )
+
+    except FutureTimeoutError as exc:
+        if future is not None:
+            future.cancel()
+
+        raise HTTPException(
+            status_code=
+                status.HTTP_504_GATEWAY_TIMEOUT,
+            detail=(
+                "AI strategy improvement "
+                "took too long. "
+                "Please try again."
+            ),
+        ) from exc
+
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=
+                status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(exc),
+        ) from exc
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=
+                status.HTTP_502_BAD_GATEWAY,
+            detail=(
+                "Unable to generate "
+                "AI strategy improvements."
+            ),
+        ) from exc
+
+    return {
+        "strategy_id":
+            strategy.id,
+
+        "strategy_name":
+            strategy.name,
+
+        "current_score":
+            result["current_score"],
+
+        "projected_score":
+            result["projected_score"],
+
+        "summary":
+            result["summary"],
+
+        "disclaimer":
+            result["disclaimer"],
+
+        "suggestions":
+            result["suggestions"],
     }

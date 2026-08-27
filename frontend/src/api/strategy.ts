@@ -5,6 +5,7 @@ import type {
   SetupScoreResponse,
   StrategyCreatePayload,
   StrategyListResponse,
+  StrategyImprovementResponse,
   StrategyProfile,
   StrategyReviewResponse,
   StrategyUpdatePayload,
@@ -96,6 +97,19 @@ export async function reviewStrategy(
   const response =
     await api.post<StrategyReviewResponse>(
       `/strategies/${strategyId}/review`,
+    )
+
+  return response.data
+}
+
+
+
+export async function improveStrategy(
+  strategyId: number,
+): Promise<StrategyImprovementResponse> {
+  const response =
+    await api.post<StrategyImprovementResponse>(
+      `/strategies/${strategyId}/improve`,
     )
 
   return response.data

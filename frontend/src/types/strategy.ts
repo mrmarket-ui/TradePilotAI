@@ -285,3 +285,44 @@ export type StrategyReviewResponse = {
 
   summary: string
 }
+
+
+
+export type StrategyImprovementSuggestion = {
+  id: string
+
+  category: string
+  title: string
+  reason: string
+
+  field: keyof StrategyCreatePayload
+
+  action:
+    | "append"
+    | "replace"
+    | "set"
+
+  value:
+    | string
+    | number
+    | boolean
+    | string[]
+    | null
+
+  projected_impact: number
+}
+
+
+export type StrategyImprovementResponse = {
+  strategy_id: number
+  strategy_name: string
+
+  current_score: number
+  projected_score: number
+
+  summary: string
+  disclaimer: string
+
+  suggestions:
+    StrategyImprovementSuggestion[]
+}

@@ -262,7 +262,9 @@ def review_strategy_gemini(
             message = str(exc)
 
             if (
-                "503" in message
+                "429" in message
+                or "RESOURCE_EXHAUSTED" in message
+                or "503" in message
                 or "504" in message
                 or "UNAVAILABLE" in message
                 or "DEADLINE_EXCEEDED" in message
@@ -270,6 +272,19 @@ def review_strategy_gemini(
                 continue
 
             raise
+
+    last_message = str(
+        last_error or ""
+    )
+
+    if (
+        "429" in last_message
+        or "RESOURCE_EXHAUSTED" in last_message
+    ):
+        raise RuntimeError(
+            "AI service quota reached. "
+            "Please try again later."
+        ) from last_error
 
     raise RuntimeError(
         "AI review service is busy. "

@@ -1,3 +1,4 @@
+from typing import Literal
 from datetime import datetime
 
 from pydantic import (
@@ -282,3 +283,44 @@ class StrategyReviewResponse(BaseModel):
     )
 
     summary: str
+
+
+
+class StrategyImprovementSuggestion(
+    BaseModel
+):
+    id: str
+    category: str
+    title: str
+    reason: str
+
+    field: str
+    action: Literal["append", "set"]
+
+    value: (
+        str
+        | float
+        | int
+        | bool
+        | list[str]
+        | None
+    ) = None
+
+    projected_impact: float = 0
+
+
+class StrategyImprovementResponse(
+    BaseModel
+):
+    strategy_id: int
+    strategy_name: str
+
+    current_score: float
+    projected_score: float
+
+    summary: str
+    disclaimer: str
+
+    suggestions: list[
+        StrategyImprovementSuggestion
+    ]
