@@ -352,7 +352,7 @@ export function Billing(){
                     key={feature}
                     className="flex items-center gap-3 text-sm text-slate-300"
                   >
-                    <span className="grid size-5 shrink-0 place-items-center rounded-full bg-emerald-400/10 text-xs text-emerald-300">
+                    <span className="grid size-5 shrink-0 place-items-center rounded-full bg-emerald-400/10 text-xs font-semibold text-emerald-300">
                       ?
                     </span>
 

@@ -197,12 +197,12 @@ export default function Shell() {
 
           <div className="mx-4 mb-2 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
             <p className="text-xs uppercase tracking-wider text-slate-500">
-              Current plan
+              {user?.is_admin ? "Access level" : "Current plan"}
             </p>
 
             <p className="mt-1 font-semibold capitalize">
               {user?.is_admin
-                ? "Owner - Premium"
+                ? "Owner Access ? Premium"
                 : plan}
             </p>
           </div>
