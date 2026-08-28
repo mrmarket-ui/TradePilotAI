@@ -99,6 +99,17 @@ def mark_subscription_cancelled(
 ) -> Subscription:
     subscription.status = "cancelled"
 
+    user = (
+        db.query(User)
+        .filter(
+            User.id == subscription.user_id
+        )
+        .first()
+    )
+
+    if user:
+        user.plan = "free"
+
     db.commit()
     db.refresh(subscription)
 

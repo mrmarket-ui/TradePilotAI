@@ -241,6 +241,7 @@ def apply_active_subscription(
 
 
 def apply_subscription_status(
+    db: Session,
     subscription: Subscription,
     status: str,
 ) -> None:
@@ -250,6 +251,22 @@ def apply_subscription_status(
         subscription.cancelled_at = (
             datetime.utcnow()
         )
+
+    if status in {
+        "cancelled",
+        "suspended",
+        "expired",
+    }:
+        user = (
+            db.query(User)
+            .filter(
+                User.id == subscription.user_id
+            )
+            .first()
+        )
+
+        if user:
+            user.plan = "free"
 
 
 def process_paypal_event(
@@ -325,18 +342,21 @@ def process_paypal_event(
 
         elif event_type in CANCELLED_EVENTS:
             apply_subscription_status(
+                db,
                 subscription,
                 "cancelled",
             )
 
         elif event_type in SUSPENDED_EVENTS:
             apply_subscription_status(
+                db,
                 subscription,
                 "suspended",
             )
 
         elif event_type in EXPIRED_EVENTS:
             apply_subscription_status(
+                db,
                 subscription,
                 "expired",
             )
@@ -358,8 +378,10 @@ def process_paypal_event(
             event_type
             in PAYMENT_REVERSED_EVENTS
         ):
-            subscription.status = (
-                "suspended"
+            apply_subscription_status(
+                db,
+                subscription,
+                "suspended",
             )
 
         else:

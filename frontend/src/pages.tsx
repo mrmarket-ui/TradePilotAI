@@ -114,6 +114,13 @@ export function Billing(){
       launchPrice:"$0",
       normalPrice:"",
       detail:"Forever",
+      description:
+        "Start tracking your trading journey with the essential TradePilot tools.",
+      features:[
+        "Trade journal",
+        "Core performance tracking",
+        "Basic trading insights",
+      ],
     },
     {
       name:"Pro",
@@ -121,6 +128,14 @@ export function Billing(){
       launchPrice:"$10",
       normalPrice:"$19.99/month",
       detail:"First month",
+      description:
+        "Built for active traders who want deeper analysis and smarter decision support.",
+      features:[
+        "Advanced reports",
+        "Strategy tools",
+        "AI Coach access",
+        "Enhanced analytics",
+      ],
     },
     {
       name:"Premium",
@@ -128,55 +143,126 @@ export function Billing(){
       launchPrice:"$10",
       normalPrice:"$29.99/month",
       detail:"First month",
+      description:
+        "Unlock TradePilot AI's most advanced analysis and premium intelligence tools.",
+      features:[
+        "Everything in Pro",
+        "Premium AI analysis",
+        "Advanced Trader DNA",
+        "Priority premium features",
+      ],
     },
   ] as const
+
+  const currentPlan=
+    String(
+      subscription?.plan ||
+      user?.plan ||
+      "free"
+    ).toLowerCase()
+
+  const subscriptionStatus=
+    String(
+      subscription?.status ||
+      "inactive"
+    ).toLowerCase()
+
+  const statusStyle=
+    subscriptionStatus==="active"
+      ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
+      : subscriptionStatus==="approval_pending"
+        ? "border-amber-400/20 bg-amber-400/10 text-amber-300"
+        : "border-white/10 bg-white/[.04] text-slate-300"
 
   return (
     <Page
       title="Billing"
-      subtitle="Flexible plans for every stage of your trading journey."
+      subtitle="Choose the TradePilot AI plan that fits your trading journey."
     >
-      {subscription && (
-        <div className="premium-card rounded-3xl p-5">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+      <section className="premium-card overflow-hidden rounded-[2rem] border border-blue-400/10">
+        <div className="grid-surface p-6 sm:p-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-sm text-slate-500">
-                Current subscription
-              </p>
+              <div className="inline-flex items-center rounded-full border border-blue-400/20 bg-blue-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[.18em] text-blue-300">
+                Membership
+              </div>
 
-              <p className="mt-1 text-xl font-semibold capitalize">
-                {subscription.plan}
-              </p>
+              <h2 className="mt-4 text-2xl font-semibold sm:text-3xl">
+                Your TradePilot AI plan
+              </h2>
 
-              <p className="mt-1 text-sm text-slate-400">
-                Status:{" "}
-                <span className="capitalize">
-                  {subscription.status}
-                </span>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+                Manage your membership and upgrade securely through PayPal.
+                Your trading account and billing account remain separate.
               </p>
-
-              {subscription.next_billing_at && (
-                <p className="mt-1 text-sm text-slate-400">
-                  Next billing:{" "}
-                  {new Date(
-                    subscription.next_billing_at
-                  ).toLocaleDateString()}
-                </p>
-              )}
             </div>
 
-            {subscription.plan!=="free" &&
-             subscription.status!=="cancelled" &&
-             subscription.status!=="canceled" && (
+            {subscriptionQuery.isLoading ? (
+              <div className="rounded-2xl border border-white/10 bg-white/[.03] px-5 py-4 text-sm text-slate-400">
+                Loading subscription...
+              </div>
+            ) : (
+              <div className="min-w-[220px] rounded-2xl border border-white/10 bg-black/20 p-5">
+                <p className="text-xs uppercase tracking-[.18em] text-slate-500">
+                  Current plan
+                </p>
+
+                <div className="mt-2 flex items-center justify-between gap-3">
+                  <p className="text-2xl font-semibold capitalize text-white">
+                    {currentPlan}
+                  </p>
+
+                  <span
+                    className={`rounded-full border px-3 py-1 text-xs font-medium capitalize ${statusStyle}`}
+                  >
+                    {subscriptionStatus}
+                  </span>
+                </div>
+
+                {subscription?.next_billing_at && (
+                  <p className="mt-3 text-xs text-slate-500">
+                    Next billing{" "}
+                    <span className="text-slate-300">
+                      {new Date(
+                        subscription.next_billing_at
+                      ).toLocaleDateString()}
+                    </span>
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {subscription &&
+           subscription.plan!=="free" &&
+           subscription.status!=="cancelled" &&
+           subscription.status!=="canceled" && (
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/[.06] bg-white/[.02] p-4">
+              <div>
+                <p className="text-sm font-medium text-slate-200">
+                  Active PayPal membership
+                </p>
+
+                <p className="mt-1 text-xs text-slate-500">
+                  You can stop future renewals whenever you choose.
+                </p>
+              </div>
+
               <button
                 type="button"
                 onClick={cancelPlan}
-                className="rounded-2xl border border-red-400/30 px-5 py-3 text-red-300 hover:bg-red-400/10"
+                className="rounded-xl border border-red-400/30 px-4 py-2 text-sm font-medium text-red-300 transition hover:bg-red-400/10"
               >
-                Cancel anytime
+                Cancel subscription
               </button>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {subscriptionQuery.isError && (
+        <div className="rounded-2xl border border-red-400/20 bg-red-400/10 p-4 text-sm text-red-200">
+          We could not load your subscription details. Please refresh and try again.
         </div>
       )}
 
@@ -187,100 +273,196 @@ export function Billing(){
       )}
 
       <div className="grid gap-5 lg:grid-cols-3">
-        {plans.map(plan=>(
-          <div
-            key={plan.code}
-            className="premium-card rounded-3xl p-6"
-          >
-            <h3 className="text-xl font-semibold">
-              {plan.name}
-            </h3>
+        {plans.map(plan=>{
+          const isCurrent=
+            currentPlan===plan.code &&
+            (
+              plan.code==="free" ||
+              subscriptionStatus==="active"
+            )
 
-            {plan.code!=="free" && (
-              <div className="mt-4 inline-flex rounded-full bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-300">
-                Launch Offer
+          const isPremium=
+            plan.code==="premium"
+
+          return (
+            <div
+              key={plan.code}
+              className={`premium-card relative flex h-full flex-col overflow-hidden rounded-[2rem] p-6 transition ${
+                isPremium
+                  ? "border border-blue-400/30 shadow-[0_0_50px_rgba(59,130,246,0.08)]"
+                  : "border border-white/[.06]"
+              }`}
+            >
+              {isPremium && (
+                <div className="absolute right-5 top-5 rounded-full bg-blue-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-[.12em] text-white">
+                  Most advanced
+                </div>
+              )}
+
+              <div>
+                <p className="text-sm font-medium text-blue-300">
+                  TradePilot AI
+                </p>
+
+                <h3 className="mt-2 text-2xl font-semibold">
+                  {plan.name}
+                </h3>
+
+                <p className="mt-3 min-h-[48px] text-sm leading-6 text-slate-400">
+                  {plan.description}
+                </p>
               </div>
-            )}
 
-            <p className="mt-4 text-4xl font-semibold">
-              {plan.launchPrice}
+              <div className="mt-6 border-y border-white/[.06] py-5">
+                {plan.code!=="free" && (
+                  <div className="mb-3 inline-flex rounded-full bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-300">
+                    Launch Offer
+                  </div>
+                )}
+
+                <div className="flex items-end gap-2">
+                  <p className="text-4xl font-semibold tracking-tight">
+                    {plan.launchPrice}
+                  </p>
+
+                  {plan.code!=="free" && (
+                    <span className="mb-1 text-sm text-slate-500">
+                      USD
+                    </span>
+                  )}
+                </div>
+
+                <p className="mt-1 text-sm text-slate-500">
+                  {plan.detail}
+                </p>
+
+                {plan.normalPrice && (
+                  <p className="mt-3 text-sm text-slate-400">
+                    Then{" "}
+                    <span className="font-medium text-slate-200">
+                      {plan.normalPrice}
+                    </span>
+                  </p>
+                )}
+              </div>
+
+              <div className="mt-5 flex-1 space-y-3">
+                {plan.features.map(feature=>(
+                  <div
+                    key={feature}
+                    className="flex items-center gap-3 text-sm text-slate-300"
+                  >
+                    <span className="grid size-5 shrink-0 place-items-center rounded-full bg-emerald-400/10 text-xs text-emerald-300">
+                      ?
+                    </span>
+
+                    <span>{feature}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-7">
+                {plan.code==="free" ? (
+                  <button
+                    type="button"
+                    disabled
+                    className="w-full rounded-2xl border border-white/10 bg-white/[.04] py-3 font-medium text-slate-500"
+                  >
+                    {currentPlan==="free"
+                      ? "Current plan"
+                      : "Free plan"}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={
+                      busyPlan!=="" ||
+                      subscriptionStatus==="active"
+                    }
+                    onClick={()=>
+                      choosePlan(plan.code)
+                    }
+                    className={`w-full rounded-2xl py-3 font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                      isPremium
+                        ? "bg-blue-500 text-white hover:bg-blue-400"
+                        : "border border-blue-400/30 bg-blue-500/10 text-blue-200 hover:bg-blue-500/20"
+                    }`}
+                  >
+                    {isCurrent
+                      ? "Current plan"
+                      : busyPlan===plan.code
+                        ? "Opening PayPal..."
+                        : `Choose ${plan.name}`}
+                  </button>
+                )}
+
+                {plan.code!=="free" && (
+                  <p className="mt-3 text-center text-xs text-slate-500">
+                    Secure recurring billing through PayPal ? Cancel anytime
+                  </p>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <section className="premium-card rounded-[2rem] border border-white/[.06] p-6">
+        <div className="grid gap-6 md:grid-cols-3">
+          <div>
+            <p className="text-xs uppercase tracking-[.16em] text-slate-500">
+              Payment provider
+            </p>
+
+            <p className="mt-2 font-medium text-slate-200">
+              PayPal
             </p>
 
             <p className="mt-1 text-sm text-slate-500">
-              {plan.detail}
+              Secure recurring subscription billing.
             </p>
-
-            {plan.normalPrice && (
-              <p className="mt-3 text-sm text-slate-400">
-                Then{" "}
-                <span className="font-medium text-slate-200">
-                  {plan.normalPrice}
-                </span>
-              </p>
-            )}
-
-            {plan.code!=="free" && (
-              <p className="mt-2 text-xs text-slate-500">
-                Cancel anytime
-              </p>
-            )}
-
-            <p className="mt-5 text-sm text-slate-400">
-              Preferred display currency:{" "}
-              <span className="font-medium text-slate-200">
-                {user?.preferred_currency || "USD"}
-              </span>
-            </p>
-
-            {plan.code==="free" ? (
-              <button
-                type="button"
-                disabled
-                className="mt-6 w-full rounded-2xl bg-white/5 py-3 text-slate-500"
-              >
-                Free plan
-              </button>
-            ) : (
-              <button
-                type="button"
-                disabled={
-                  busyPlan!=="" ||
-                  subscription?.status==="active"
-                }
-                onClick={()=>
-                  choosePlan(plan.code)
-                }
-                className="mt-6 w-full rounded-2xl bg-blue-500 py-3 font-medium disabled:opacity-50"
-              >
-                {busyPlan===plan.code
-                  ? "Opening PayPal..."
-                  : `Choose ${plan.name}`}
-              </button>
-            )}
           </div>
-        ))}
-      </div>
 
-      <div className="premium-card rounded-3xl p-5 text-sm text-slate-400">
-        <p>
-          PayPal billing currency: USD.
-        </p>
+          <div>
+            <p className="text-xs uppercase tracking-[.16em] text-slate-500">
+              Billing currency
+            </p>
 
-        <p className="mt-2">
-          Pro: $10 for the first month, then $19.99/month.
-        </p>
+            <p className="mt-2 font-medium text-slate-200">
+              USD
+            </p>
 
-        <p className="mt-1">
-          Premium: $10 for the first month, then $29.99/month.
-        </p>
+            <p className="mt-1 text-sm text-slate-500">
+              Your preferred app currency is{" "}
+              {user?.preferred_currency || "USD"}.
+            </p>
+          </div>
 
-        <p className="mt-1">
-          Cancel anytime to stop future renewals.
-        </p>
-      </div>
+          <div>
+            <p className="text-xs uppercase tracking-[.16em] text-slate-500">
+              Subscription control
+            </p>
+
+            <p className="mt-2 font-medium text-slate-200">
+              Cancel anytime
+            </p>
+
+            <p className="mt-1 text-sm text-slate-500">
+              Manage future renewals directly from TradePilot AI.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 border-t border-white/[.06] pt-5 text-xs leading-5 text-slate-500">
+          Trading involves risk. TradePilot AI provides analytical and educational
+          decision-support tools and does not guarantee profitability or future
+          trading performance.
+        </div>
+      </section>
     </Page>
   )
 }
+
 export function Settings(){
   const {user}=useAuth()
   const {t,i18n}=useTranslation()
