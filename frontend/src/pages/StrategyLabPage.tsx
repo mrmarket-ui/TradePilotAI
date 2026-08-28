@@ -504,7 +504,7 @@ export default function StrategyLabPage() {
 
   return (
     <div className="space-y-6">
-      <section className="premium-card grid-surface rounded-[2rem] p-6 sm:p-8">
+      <section className="premium-card grid-surface rounded-[2rem] p-5 sm:p-8">
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <div>
             <p className="text-xs uppercase tracking-[0.25em] text-blue-300">
@@ -523,7 +523,7 @@ export default function StrategyLabPage() {
           <button
             type="button"
             onClick={openNewStrategy}
-            className="flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 px-5 py-3 text-sm font-semibold"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 px-5 py-3 text-sm font-semibold sm:w-auto"
           >
             <Plus className="size-4" />
             New strategy
@@ -537,7 +537,7 @@ export default function StrategyLabPage() {
         </div>
       ) : null}
 
-      <section className="premium-card rounded-[2rem] p-6 sm:p-8">
+      <section className="premium-card rounded-[2rem] p-5 sm:p-8">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <p className="text-xs uppercase tracking-[0.25em] text-indigo-300">
@@ -556,7 +556,7 @@ export default function StrategyLabPage() {
           <button
             type="button"
             onClick={openNewStrategy}
-            className="flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-semibold text-slate-300 transition hover:bg-white/[0.07]"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-semibold text-slate-300 transition hover:bg-white/[0.07] sm:w-auto"
           >
             <SlidersHorizontal className="size-4" />
             Build my own
@@ -707,7 +707,7 @@ export default function StrategyLabPage() {
         </div>
       </section>
 
-      <label className="premium-card flex items-center gap-3 rounded-3xl px-4">
+      <label className="premium-card flex min-w-0 items-center gap-3 rounded-3xl px-4">
         <Search className="size-5 text-slate-500" />
 
         <input
@@ -716,7 +716,7 @@ export default function StrategyLabPage() {
             setSearch(event.target.value)
           }
           placeholder="Search strategies, markets, sessions or timeframes..."
-          className="w-full bg-transparent py-4 text-sm outline-none"
+          className="min-w-0 w-full bg-transparent py-4 text-sm outline-none"
         />
       </label>
 
@@ -725,7 +725,7 @@ export default function StrategyLabPage() {
           Loading strategies...
         </div>
       ) : isError ? (
-        <div className="premium-card rounded-3xl p-8">
+        <div className="premium-card rounded-3xl p-5 sm:p-8">
           <p className="text-red-300">
             Unable to load strategies.
           </p>
@@ -758,7 +758,7 @@ export default function StrategyLabPage() {
           )}
         </div>
       ) : (
-        <div className="premium-card grid min-h-96 place-items-center rounded-[2rem] p-8">
+        <div className="premium-card grid min-h-72 place-items-center rounded-[2rem] p-5 sm:min-h-96 sm:p-8">
           <div className="text-center">
             <BrainCircuit className="mx-auto size-10 text-blue-300" />
 
@@ -773,7 +773,7 @@ export default function StrategyLabPage() {
         </div>
       )}
 
-      <aside className="premium-card rounded-3xl p-6">
+      <aside className="premium-card rounded-3xl p-5 sm:p-6">
         <div className="flex items-center gap-3">
           <Sparkles className="size-6 text-blue-300" />
 
@@ -789,3 +789,4 @@ export default function StrategyLabPage() {
     </div>
   )
 }
+
