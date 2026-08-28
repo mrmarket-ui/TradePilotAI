@@ -372,7 +372,7 @@ export default function AISignalLabPage() {
       )}
 
 
-      <section className="premium-card rounded-3xl p-6">
+      <section className="premium-card rounded-3xl p-5 sm:p-6">
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 
@@ -541,7 +541,7 @@ export default function AISignalLabPage() {
             analyzeMutation
               .mutate()
           }
-          className="mt-6 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-3 font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-3 font-semibold disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
 
           {analyzeMutation
@@ -569,7 +569,7 @@ export default function AISignalLabPage() {
           {/* Main verdict */}
           <div
             className={[
-              "premium-card overflow-hidden rounded-[2rem] border p-6 sm:p-8",
+              "premium-card overflow-hidden rounded-[2rem] border p-5 sm:p-8",
 
               current.direction === "BUY"
                 ? "border-emerald-400/20"
@@ -634,7 +634,7 @@ export default function AISignalLabPage() {
               </div>
 
 
-              <div className="grid min-w-[260px] grid-cols-2 gap-3">
+              <div className="grid w-full grid-cols-2 gap-3 lg:w-auto lg:min-w-[260px]">
 
                 <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
                   <p className="text-xs uppercase tracking-[0.15em] text-slate-500">
@@ -1082,7 +1082,7 @@ export default function AISignalLabPage() {
             current.confidence >= 60 &&
             current.setup_score >= 60 ? (
 
-              <div className="mt-6 flex flex-wrap gap-3">
+              <div className="mt-6 grid gap-3 sm:grid-cols-[minmax(0,1fr)_140px_auto]">
 
                 <input
                   value={entry}
@@ -1094,7 +1094,7 @@ export default function AISignalLabPage() {
                   type="number"
                   step="any"
                   placeholder="Entry price"
-                  className="min-w-[180px] rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 outline-none"
+                  className="w-full min-w-0 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 outline-none"
                 />
 
 
@@ -1110,7 +1110,7 @@ export default function AISignalLabPage() {
                   max="10"
                   step="0.1"
                   placeholder="Risk %"
-                  className="w-36 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 outline-none"
+                  className="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 outline-none"
                 />
 
 
@@ -1121,7 +1121,7 @@ export default function AISignalLabPage() {
                     paperMutation.isPending
                   }
                   onClick={startPaperTrade}
-                  className="flex items-center gap-2 rounded-2xl bg-emerald-500 px-5 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-5 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                 >
 
                   {paperMutation.isPending ? (
@@ -1160,7 +1160,7 @@ export default function AISignalLabPage() {
       )}
 
 
-      <section className="premium-card rounded-3xl p-6">
+      <section className="premium-card rounded-3xl p-5 sm:p-6">
 
         <h2 className="text-xl font-semibold">
           Recent AI Signals

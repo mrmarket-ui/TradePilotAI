@@ -1,4 +1,4 @@
-﻿import {
+import {
   FileText,
   Image,
   Link,
@@ -128,7 +128,7 @@ export default function StrategyImporterPage(){
       )}
 
       <section className="grid gap-5 lg:grid-cols-2">
-        <label className="premium-card cursor-pointer rounded-3xl p-7">
+        <label className="premium-card cursor-pointer rounded-3xl p-5 sm:p-7">
           <Upload className="size-7 text-blue-300"/>
 
           <h2 className="mt-4 text-xl font-semibold">
@@ -161,7 +161,7 @@ export default function StrategyImporterPage(){
           )}
         </label>
 
-        <section className="premium-card rounded-3xl p-7">
+        <section className="premium-card rounded-3xl p-5 sm:p-7">
           <Link className="size-7 text-emerald-300"/>
 
           <h2 className="mt-4 text-xl font-semibold">
@@ -184,7 +184,7 @@ export default function StrategyImporterPage(){
           <button
             onClick={()=>addUrl.mutate(url)}
             disabled={!url||addUrl.isPending}
-            className="mt-3 rounded-2xl bg-emerald-500 px-5 py-3 font-medium disabled:opacity-50"
+            className="mt-3 w-full rounded-2xl bg-emerald-500 px-5 py-3 font-medium disabled:opacity-50 sm:w-auto"
           >
             Add Link
           </button>
@@ -197,16 +197,31 @@ export default function StrategyImporterPage(){
         </h2>
 
         <div className="mt-5 space-y-4">
+          {q.isLoading ? (
+            <div className="premium-card flex items-center gap-3 rounded-3xl p-5 text-sm text-slate-400">
+              <Loader2 className="size-4 animate-spin"/>
+              Loading strategy sources...
+            </div>
+          ) : q.isError ? (
+            <div className="rounded-3xl border border-red-400/20 bg-red-400/[.07] p-5 text-sm text-red-300">
+              Unable to load strategy sources.
+            </div>
+          ) : !(q.data||[]).length ? (
+            <div className="rounded-3xl border border-dashed border-white/10 p-6 text-center text-sm text-slate-500 sm:p-8">
+              No strategy sources yet. Upload a file or add a link to begin.
+            </div>
+          ) : null}
+
           {(q.data||[]).map(source=>{
             const Icon=iconFor(source)
 
             return (
               <article
                 key={source.id}
-                className="premium-card rounded-3xl p-6"
+                className="premium-card rounded-3xl p-5 sm:p-6"
               >
                 <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
-                  <div className="flex gap-4">
+                  <div className="flex min-w-0 gap-4">
                     <div className="grid size-12 place-items-center rounded-2xl bg-blue-500/10">
                       <Icon className="size-5 text-blue-300"/>
                     </div>
@@ -220,20 +235,20 @@ export default function StrategyImporterPage(){
 
                       <p className="mt-1 text-sm capitalize text-slate-500">
                         {source.source_type}
-                        {" · "}
+                        {" - "}
                         {source.status}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
                     {source.source_type!=="video"&&(
                       <button
                         onClick={()=>
                           analyze.mutate(source.id)
                         }
                         disabled={analyze.isPending}
-                        className="flex items-center gap-2 rounded-2xl bg-blue-500 px-4 py-2 text-sm"
+                        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-500 px-4 py-2 text-sm sm:w-auto"
                       >
                         <Sparkles className="size-4"/>
                         Analyze
@@ -245,7 +260,7 @@ export default function StrategyImporterPage(){
                         onClick={()=>
                           save.mutate(source.id)
                         }
-                        className="flex items-center gap-2 rounded-2xl border border-white/10 px-4 py-2 text-sm"
+                        className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 px-4 py-2 text-sm sm:w-auto"
                       >
                         <Save className="size-4"/>
                         Save to Strategy Lab
@@ -273,13 +288,13 @@ export default function StrategyImporterPage(){
                           source.extracted_strategy.entry_rules||
                           []
                         ).length
-                      } entry rules ·{" "}
+                      } entry rules -{" "}
                       {
                         (
                           source.extracted_strategy.confirmations||
                           []
                         ).length
-                      } confirmations ·{" "}
+                      } confirmations -{" "}
                       {
                         (
                           source.extracted_strategy.exit_rules||
