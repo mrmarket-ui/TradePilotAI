@@ -202,7 +202,7 @@ export default function Shell() {
 
             <p className="mt-1 font-semibold capitalize">
               {user?.is_admin
-                ? "Owner Access ? Premium"
+                ? "Owner Access - Premium"
                 : plan}
             </p>
           </div>

@@ -2,7 +2,7 @@
 import {Navigate,useLocation,useNavigate} from "react-router-dom"
 import {useMutation,useQuery,useQueryClient} from "@tanstack/react-query"
 import {Area,AreaChart,CartesianGrid,ResponsiveContainer,Tooltip,XAxis,YAxis} from "recharts"
-import {Plus,Search,Pencil,Trash2,BrainCircuit,Upload,ExternalLink} from "lucide-react"
+import {Plus,Search,Pencil,Trash2,BrainCircuit,Upload,ExternalLink,Check} from "lucide-react"
 import {useAuth} from "@/Auth"
 import {useTranslation} from "react-i18next"
 import {updatePreferences} from "@/api/profile/preferences"
@@ -352,8 +352,8 @@ export function Billing(){
                     key={feature}
                     className="flex items-center gap-3 text-sm text-slate-300"
                   >
-                    <span className="grid size-5 shrink-0 place-items-center rounded-full bg-emerald-400/10 text-xs font-semibold text-emerald-300">
-                      ?
+                    <span className="grid size-5 shrink-0 place-items-center rounded-full bg-emerald-400/10 text-emerald-300">
+                      <Check className="size-3" strokeWidth={3} />
                     </span>
 
                     <span>{feature}</span>
