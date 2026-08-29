@@ -1,4 +1,4 @@
-﻿import {useMemo,useState,type FormEvent} from "react"
+import {useMemo,useState,type FormEvent} from "react"
 import {Navigate,useLocation,useNavigate} from "react-router-dom"
 import {useMutation,useQuery,useQueryClient} from "@tanstack/react-query"
 import {Area,AreaChart,CartesianGrid,ResponsiveContainer,Tooltip,XAxis,YAxis} from "recharts"
@@ -202,7 +202,7 @@ export function Billing(){
                 Loading subscription...
               </div>
             ) : (
-              <div className="min-w-[220px] rounded-2xl border border-white/10 bg-black/20 p-5">
+              <div className="w-full rounded-2xl border border-white/10 bg-black/20 p-5 sm:min-w-[220px] lg:w-auto">
                 <p className="text-xs uppercase tracking-[.18em] text-slate-500">
                   Current plan
                 </p>
@@ -287,7 +287,7 @@ export function Billing(){
           return (
             <div
               key={plan.code}
-              className={`premium-card relative flex h-full flex-col overflow-hidden rounded-[2rem] p-6 transition ${
+              className={`premium-card relative flex h-full flex-col overflow-hidden rounded-[2rem] p-5 transition sm:p-6 ${
                 isPremium
                   ? "border border-blue-400/30 shadow-[0_0_50px_rgba(59,130,246,0.08)]"
                   : "border border-white/[.06]"
@@ -398,7 +398,7 @@ export function Billing(){
 
                 {plan.code!=="free" && (
                   <p className="mt-3 text-center text-xs text-slate-500">
-                    Secure recurring billing through PayPal ? Cancel anytime
+                    Secure recurring billing through PayPal - Cancel anytime
                   </p>
                 )}
               </div>
@@ -407,7 +407,7 @@ export function Billing(){
         })}
       </div>
 
-      <section className="premium-card rounded-[2rem] border border-white/[.06] p-6">
+      <section className="premium-card rounded-[2rem] border border-white/[.06] p-5 sm:p-6">
         <div className="grid gap-6 md:grid-cols-3">
           <div>
             <p className="text-xs uppercase tracking-[.16em] text-slate-500">
