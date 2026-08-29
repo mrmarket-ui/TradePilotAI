@@ -390,7 +390,7 @@ function DailyTradePanel({
                       key={
                         trade.id
                       }
-                      className="rounded-3xl border border-white/[0.07] bg-white/[0.025] p-5"
+                      className="rounded-3xl border border-white/[0.07] bg-white/[0.025] p-4 sm:p-5"
                     >
 
                       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
@@ -547,7 +547,7 @@ function DailyTradePanel({
                 },
               )
             ) : (
-              <div className="rounded-2xl border border-dashed border-white/10 p-8 text-center text-sm text-slate-500">
+              <div className="rounded-2xl border border-dashed border-white/10 p-5 text-center text-sm text-slate-500 sm:p-8">
                 No trades found for this day.
               </div>
             )}
@@ -557,7 +557,7 @@ function DailyTradePanel({
         </div>
 
 
-        <div className="mt-8 rounded-3xl border border-blue-400/10 bg-blue-400/[0.04] p-5">
+        <div className="mt-8 rounded-3xl border border-blue-400/10 bg-blue-400/[0.04] p-4 sm:p-5">
 
           <div className="flex items-center gap-2">
 
@@ -802,7 +802,7 @@ export default function TradingCalendarPage() {
   return (
     <div className="space-y-6">
 
-      <section className="premium-card grid-surface rounded-[2rem] p-6 sm:p-8">
+      <section className="premium-card grid-surface rounded-[2rem] p-5 sm:p-8">
 
         <div className="flex items-center gap-3">
 
@@ -899,7 +899,7 @@ export default function TradingCalendarPage() {
 
       <section className="premium-card rounded-[2rem] p-4 sm:p-6">
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
 
           <button
             type="button"
@@ -919,7 +919,7 @@ export default function TradingCalendarPage() {
           </button>
 
 
-          <h2 className="text-lg font-semibold sm:text-xl">
+          <h2 className="min-w-0 flex-1 text-center text-base font-semibold sm:text-xl">
             {month.toLocaleDateString(
               undefined,
               {
@@ -953,9 +953,9 @@ export default function TradingCalendarPage() {
         </div>
 
 
-        <div className="mt-6 overflow-x-auto">
+        <div className="mt-6 overflow-x-auto pb-2">
 
-          <div className="min-w-[700px]">
+          <div className="min-w-[640px] sm:min-w-[700px]">
 
             <div className="grid grid-cols-7 gap-2">
 

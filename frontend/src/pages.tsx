@@ -522,7 +522,7 @@ export function Settings(){
       title={t("settings")}
       subtitle="Manage your profile and global application preferences."
     >
-      <div className="premium-card max-w-3xl rounded-3xl p-6">
+      <div className="premium-card max-w-3xl rounded-3xl p-5 sm:p-6">
         <div className="grid gap-6 md:grid-cols-2">
 
           <div>
@@ -586,7 +586,7 @@ export function Settings(){
           type="button"
           disabled={saving}
           onClick={savePreferences}
-          className="mt-6 rounded-2xl bg-blue-500 px-6 py-3 font-medium disabled:opacity-50"
+          className="mt-6 w-full rounded-2xl bg-blue-500 px-6 py-3 font-medium transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
           {saving
             ? "Saving..."
