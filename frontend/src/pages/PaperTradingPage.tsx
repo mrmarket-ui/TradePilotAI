@@ -640,7 +640,7 @@ export default function PaperTradingPage() {
 
             <div className="grid gap-5 xl:grid-cols-2">
 
-              <div className="premium-card rounded-[2rem] p-6">
+              <div className="premium-card rounded-[2rem] p-5 sm:p-6">
 
                 <h3 className="text-xl font-semibold">
                   Strategy Leaderboard
@@ -656,7 +656,7 @@ export default function PaperTradingPage() {
                           className="rounded-2xl border border-white/[.06] bg-white/[.025] p-4"
                         >
 
-                          <div className="flex items-center justify-between gap-4">
+                          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
 
                             <div>
                               <p className="text-xs text-slate-500">
@@ -731,7 +731,7 @@ export default function PaperTradingPage() {
               </div>
 
 
-              <div className="premium-card rounded-[2rem] p-6">
+              <div className="premium-card rounded-[2rem] p-5 sm:p-6">
 
                 <h3 className="text-xl font-semibold">
                   Symbol Performance
@@ -753,7 +753,7 @@ export default function PaperTradingPage() {
                             </p>
 
                             <p className="mt-1 text-xs text-slate-500">
-                              {item.trades} trades ? {item.win_rate.toFixed(1)}% win rate
+                              {item.trades} trades - {item.win_rate.toFixed(1)}% win rate
                             </p>
                           </div>
 
@@ -788,7 +788,7 @@ export default function PaperTradingPage() {
 
             <div className="grid gap-5 xl:grid-cols-2">
 
-              <div className="premium-card rounded-[2rem] p-6">
+              <div className="premium-card rounded-[2rem] p-5 sm:p-6">
 
                 <h3 className="text-xl font-semibold">
                   Timeframe Performance
@@ -838,7 +838,7 @@ export default function PaperTradingPage() {
               </div>
 
 
-              <div className="premium-card rounded-[2rem] p-6">
+              <div className="premium-card rounded-[2rem] p-5 sm:p-6">
 
                 <h3 className="text-xl font-semibold">
                   Confidence Performance
@@ -858,7 +858,7 @@ export default function PaperTradingPage() {
                           className="rounded-2xl bg-white/[.025] p-4"
                         >
 
-                          <div className="flex items-center justify-between gap-4">
+                          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
 
                             <p className="font-semibold">
                               {item.band}% confidence
@@ -915,9 +915,9 @@ export default function PaperTradingPage() {
       </section>
 
 
-      <section className="premium-card rounded-[2rem] p-6">
+      <section className="premium-card rounded-[2rem] p-5 sm:p-6">
 
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
 
           <div>
             <p className="text-xs uppercase tracking-[.2em] text-blue-300">
@@ -1049,7 +1049,7 @@ export default function PaperTradingPage() {
                   </div>
 
 
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
 
                     <input
                       type="number"
@@ -1071,7 +1071,7 @@ export default function PaperTradingPage() {
                         )
                       }
                       placeholder="Exit price"
-                      className="min-w-[170px] rounded-2xl border border-white/10 bg-white/[.03] px-4 py-2 outline-none"
+                      className="w-full min-w-0 rounded-2xl border border-white/10 bg-white/[.03] px-4 py-2 outline-none sm:w-auto sm:min-w-[170px]"
                     />
 
 
@@ -1086,7 +1086,7 @@ export default function PaperTradingPage() {
                           trade.id,
                         )
                       }
-                      className="flex items-center gap-2 rounded-2xl bg-blue-500 px-4 py-2 text-sm font-semibold disabled:opacity-50"
+                      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-500 px-4 py-2 text-sm font-semibold disabled:opacity-50 sm:w-auto"
                     >
 
                       {closeMutation
@@ -1115,7 +1115,7 @@ export default function PaperTradingPage() {
             .isLoading &&
             openTrades.length ===
               0 && (
-            <div className="rounded-3xl border border-dashed border-white/10 p-8 text-center">
+            <div className="rounded-3xl border border-dashed border-white/10 p-5 text-center sm:p-8">
 
               <p className="text-sm text-slate-500">
                 No open paper trades.
@@ -1133,7 +1133,7 @@ export default function PaperTradingPage() {
       </section>
 
 
-      <section className="premium-card rounded-[2rem] p-6">
+      <section className="premium-card rounded-[2rem] p-5 sm:p-6">
 
         <div className="flex items-center gap-3">
 
@@ -1163,7 +1163,7 @@ export default function PaperTradingPage() {
 
                 <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
 
-                  <div className="flex items-start gap-3">
+                  <div className="flex min-w-0 items-start gap-3">
 
                     {trade.result ===
                     "WIN"
@@ -1243,7 +1243,7 @@ export default function PaperTradingPage() {
                   </div>
 
 
-                  <div className="flex items-center gap-6">
+                  <div className="flex w-full items-center justify-between gap-4 sm:w-auto sm:justify-start sm:gap-6">
 
                     <div className="text-right">
                       <p className="text-xs text-slate-500">
@@ -1305,7 +1305,7 @@ export default function PaperTradingPage() {
 
           {closedTrades.length ===
             0 && (
-            <div className="rounded-3xl border border-dashed border-white/10 p-8 text-center">
+            <div className="rounded-3xl border border-dashed border-white/10 p-5 text-center sm:p-8">
 
               <p className="text-sm text-slate-500">
                 No completed paper trades yet.
