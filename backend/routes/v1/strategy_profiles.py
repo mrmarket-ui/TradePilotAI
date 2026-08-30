@@ -12,7 +12,6 @@ from fastapi import (
 from sqlalchemy.orm import Session
 
 from database.database import get_db
-from dependencies.auth import get_current_user
 from models.user import User
 
 from schemas.strategy_profile import (
@@ -97,7 +96,9 @@ def get_owned_strategy(
 def create_strategy_profile(
     payload: StrategyProfileCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_premium_plan,
+    ),
 ):
     try:
         validate_strategy_create(payload)
@@ -120,7 +121,9 @@ def create_strategy_profile(
 )
 def read_strategy_profiles(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_premium_plan,
+    ),
 ):
     strategies = list_strategies(
         db=db,
@@ -140,7 +143,9 @@ def read_strategy_profiles(
 def read_strategy_profile(
     strategy_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_premium_plan,
+    ),
 ):
     return get_owned_strategy(
         db=db,
@@ -157,7 +162,9 @@ def patch_strategy_profile(
     strategy_id: int,
     payload: StrategyProfileUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_premium_plan,
+    ),
 ):
     try:
         validate_strategy_update(payload)
@@ -184,7 +191,9 @@ def patch_strategy_profile(
 def remove_strategy_profile(
     strategy_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_premium_plan,
+    ),
 ):
     strategy = get_owned_strategy(
         db=db,
@@ -211,7 +220,9 @@ def remove_strategy_profile(
 def activate_strategy_profile(
     strategy_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_premium_plan,
+    ),
 ):
     strategy = get_owned_strategy(
         db=db,
@@ -233,7 +244,9 @@ def score_strategy_setup(
     strategy_id: int,
     payload: SetupScoreRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_premium_plan,
+    ),
 ):
     strategy = get_owned_strategy(
         db=db,
