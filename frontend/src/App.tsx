@@ -14,6 +14,7 @@ import {
   Coach,
   DNA,
   Login,
+  Register,
   Reports,
   Settings,
   Trades,
@@ -184,6 +185,11 @@ export default function App() {
       <Route
         path="/login"
         element={<Login />}
+      />
+
+      <Route
+        path="/register"
+        element={<Register />}
       />
 
       <Route element={<Protected />}>

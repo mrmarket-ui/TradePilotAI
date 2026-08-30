@@ -1,5 +1,5 @@
 import {useMemo,useState,type FormEvent} from "react"
-import {Navigate,useLocation,useNavigate} from "react-router-dom"
+import {Link,Navigate,useLocation,useNavigate} from "react-router-dom"
 import {useMutation,useQuery,useQueryClient} from "@tanstack/react-query"
 import {Area,AreaChart,CartesianGrid,ResponsiveContainer,Tooltip,XAxis,YAxis} from "recharts"
 import {Plus,Search,Pencil,Trash2,BrainCircuit,Upload,ExternalLink,Check} from "lucide-react"
@@ -7,9 +7,626 @@ import {useAuth} from "@/Auth"
 import {useTranslation} from "react-i18next"
 import {updatePreferences} from "@/api/profile/preferences"
 import {supportedCurrencies} from "@/utils/currency"
-import {dashboard,analysis,trades,addTrade,editTrade,removeTrade,reviewTrade,weekly,monthly,coach,createPayPalSubscription,mySubscription,cancelSubscription} from "@/api"
+import {dashboard,analysis,trades,addTrade,editTrade,removeTrade,reviewTrade,weekly,monthly,coach,createPayPalSubscription,mySubscription,cancelSubscription,registerUser} from "@/api"
 import type {Trade,TradePayload} from "@/types"
-export function Login(){const {login,isAuthenticated}=useAuth();const nav=useNavigate(),loc=useLocation();const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[error,setError]=useState(""),[busy,setBusy]=useState(false);const d=(loc.state as any)?.from||"/dashboard";if(isAuthenticated)return <Navigate to={d} replace/>;async function sub(e:FormEvent){e.preventDefault();setBusy(true);setError("");try{await login({email,password});nav(d,{replace:true})}catch{setError("Invalid email or password.")}finally{setBusy(false)}}return <div className="grid min-h-screen place-items-center bg-[#060912] p-4"><form onSubmit={sub} className="premium-card w-full max-w-md rounded-[2rem] p-8"><p className="text-xs uppercase tracking-[.25em] text-blue-300">TradePilot AI</p><h1 className="mt-4 text-3xl font-semibold">Welcome back</h1><input className="mt-8 w-full rounded-2xl border border-white/10 bg-white/[.03] px-4 py-3" type="email" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} required/><input className="mt-4 w-full rounded-2xl border border-white/10 bg-white/[.03] px-4 py-3" type="password" placeholder="Password" value={password} onChange={e=>setPassword(e.target.value)} required/>{error&&<div className="mt-4 rounded-2xl bg-red-400/10 p-3 text-red-300">{error}</div>}<button className="mt-5 w-full rounded-2xl bg-blue-500 px-4 py-3 font-semibold">{busy?"Signing in...":"Enter workspace"}</button></form></div>}
+export function Login(){
+  const {
+    login,
+    isAuthenticated,
+  }=useAuth()
+
+  const nav=useNavigate()
+  const loc=useLocation()
+
+  const [email,setEmail]=useState("")
+  const [password,setPassword]=useState("")
+  const [error,setError]=useState("")
+  const [busy,setBusy]=useState(false)
+
+  const destination=
+    (loc.state as any)?.from||
+    "/dashboard"
+
+  if(isAuthenticated){
+    return(
+      <Navigate
+        to={destination}
+        replace
+      />
+    )
+  }
+
+  async function sub(e:FormEvent){
+    e.preventDefault()
+
+    if(busy){
+      return
+    }
+
+    setBusy(true)
+    setError("")
+
+    try{
+      await login({
+        email,
+        password,
+      })
+
+      nav(
+        destination,
+        {
+          replace:true,
+        },
+      )
+    }catch{
+      setError(
+        "Invalid email or password.",
+      )
+    }finally{
+      setBusy(false)
+    }
+  }
+
+  return(
+    <div className="auth-shell">
+      <div className="auth-orb auth-orb-one"/>
+      <div className="auth-orb auth-orb-two"/>
+
+      <div className="auth-grid mx-auto grid w-full max-w-7xl items-center gap-10 px-4 py-8 sm:px-6 lg:min-h-screen lg:grid-cols-[1.08fr_.92fr] lg:px-10">
+        <section className="auth-showcase hidden lg:block">
+          <div className="auth-brand-row">
+            <div className="auth-brand-mark">
+              TP
+            </div>
+
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[.32em] text-blue-300">
+                TradePilot AI
+              </p>
+
+              <p className="mt-1 text-xs text-slate-500">
+                Trading intelligence workspace
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-12">
+            <div className="auth-pill">
+              AI-powered trading intelligence
+            </div>
+
+            <h1 className="mt-6 max-w-3xl text-5xl font-semibold leading-[1.06] xl:text-6xl">
+              Understand your trading.
+              <span className="auth-gradient-text block">
+                Improve your process.
+              </span>
+            </h1>
+
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-400">
+              TradePilot AI turns your journal, performance and trading behaviour
+              into structured intelligence designed to support better decision-making.
+            </p>
+          </div>
+
+          <div className="mt-10 grid max-w-2xl gap-4 sm:grid-cols-2">
+            {[
+              [
+                "Trading Journal",
+                "Capture every setup, result and lesson.",
+              ],
+              [
+                "Performance Analytics",
+                "See the patterns behind your results.",
+              ],
+              [
+                "AI Coach",
+                "Review psychology, risk and consistency.",
+              ],
+              [
+                "Strategy Intelligence",
+                "Build rules around how you actually trade.",
+              ],
+            ].map(([title,description])=>(
+              <div
+                key={title}
+                className="auth-feature-card"
+              >
+                <div className="auth-check">
+                  <Check className="size-4"/>
+                </div>
+
+                <div>
+                  <p className="text-sm font-semibold text-slate-200">
+                    {title}
+                  </p>
+
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    {description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="auth-trust-strip mt-8 max-w-2xl">
+            <div>
+              <p className="text-xs uppercase tracking-[.2em] text-slate-500">
+                Built for
+              </p>
+              <p className="mt-1 text-sm font-medium">
+                Process ? Discipline ? Review
+              </p>
+            </div>
+
+            <div className="h-8 w-px bg-white/[.08]"/>
+
+            <div>
+              <p className="text-xs uppercase tracking-[.2em] text-slate-500">
+                Access
+              </p>
+              <p className="mt-1 text-sm font-medium">
+                Free ? Pro ? Premium
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto w-full max-w-md">
+          <div className="auth-card">
+            <div className="lg:hidden">
+              <div className="auth-brand-row">
+                <div className="auth-brand-mark">
+                  TP
+                </div>
+
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[.28em] text-blue-300">
+                    TradePilot AI
+                  </p>
+
+                  <p className="mt-1 text-xs text-slate-500">
+                    Trading intelligence workspace
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 lg:mt-0">
+              <div className="auth-pill">
+                Secure workspace
+              </div>
+
+              <h2 className="mt-5 text-3xl font-semibold">
+                Welcome back
+              </h2>
+
+              <p className="mt-2 text-sm leading-6 text-slate-400">
+                Sign in to continue to your TradePilot AI workspace.
+              </p>
+            </div>
+
+            <form
+              onSubmit={sub}
+              className="mt-8"
+            >
+              <label className="auth-label">
+                Email address
+              </label>
+
+              <input
+                className="auth-input"
+                type="email"
+                placeholder="you@example.com"
+                autoComplete="email"
+                value={email}
+                onChange={e=>setEmail(e.target.value)}
+                required
+              />
+
+              <label className="auth-label mt-5">
+                Password
+              </label>
+
+              <input
+                className="auth-input"
+                type="password"
+                placeholder="Enter your password"
+                autoComplete="current-password"
+                value={password}
+                onChange={e=>setPassword(e.target.value)}
+                required
+              />
+
+              {error&&(
+                <div className="mt-4 rounded-2xl border border-red-400/10 bg-red-400/10 p-3 text-sm text-red-300">
+                  {error}
+                </div>
+              )}
+
+              <button
+                disabled={busy}
+                className="auth-primary-button"
+              >
+                {busy
+                  ?"Signing in..."
+                  :"Enter workspace"}
+              </button>
+            </form>
+
+            <div className="mt-7 border-t border-white/[.07] pt-6 text-center">
+              <p className="text-sm text-slate-500">
+                New to TradePilot AI?
+              </p>
+
+              <Link
+                to="/register"
+                className="mt-3 inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold text-blue-300 transition hover:bg-blue-400/10 hover:text-blue-200"
+              >
+                Create a free account
+              </Link>
+            </div>
+
+            <p className="mt-5 text-center text-[11px] leading-5 text-slate-600">
+              Analytical and educational tools only. Trading involves financial risk.
+            </p>
+          </div>
+        </section>
+      </div>
+    </div>
+  )
+}
+
+
+export function Register(){
+  const {
+    login,
+    isAuthenticated,
+  }=useAuth()
+
+  const nav=useNavigate()
+
+  const [email,setEmail]=useState("")
+  const [password,setPassword]=useState("")
+  const [confirmPassword,setConfirmPassword]=useState("")
+  const [acceptedTerms,setAcceptedTerms]=useState(false)
+  const [error,setError]=useState("")
+  const [busy,setBusy]=useState(false)
+
+  if(isAuthenticated){
+    return(
+      <Navigate
+        to="/dashboard"
+        replace
+      />
+    )
+  }
+
+  async function sub(e:FormEvent){
+    e.preventDefault()
+
+    if(busy){
+      return
+    }
+
+    setError("")
+
+    const cleanEmail=
+      email.trim().toLowerCase()
+
+    if(password.length<8){
+      setError(
+        "Use at least 8 characters for your password.",
+      )
+      return
+    }
+
+    if(password!==confirmPassword){
+      setError(
+        "The passwords do not match.",
+      )
+      return
+    }
+
+    if(!acceptedTerms){
+      setError(
+        "Please accept the Terms & Conditions to create your account.",
+      )
+      return
+    }
+
+    setBusy(true)
+
+    try{
+      await registerUser(
+        cleanEmail,
+        password,
+      )
+
+      await login({
+        email:cleanEmail,
+        password,
+      })
+
+      nav(
+        "/dashboard",
+        {
+          replace:true,
+        },
+      )
+    }catch(err){
+      if(
+        err instanceof Error&&
+        err.message
+      ){
+        if(
+          err.message
+            .toLowerCase()
+            .includes("already exists")
+        ){
+          setError(
+            "An account with this email already exists. Sign in instead.",
+          )
+        }else{
+          setError(err.message)
+        }
+      }else{
+        setError(
+          "We could not create your account. Please try again.",
+        )
+      }
+    }finally{
+      setBusy(false)
+    }
+  }
+
+  return(
+    <div className="auth-shell">
+      <div className="auth-orb auth-orb-one"/>
+      <div className="auth-orb auth-orb-two"/>
+
+      <div className="auth-grid mx-auto grid w-full max-w-7xl gap-10 px-4 py-8 sm:px-6 lg:min-h-screen lg:grid-cols-[1.08fr_.92fr] lg:items-center lg:px-10">
+        <section className="auth-showcase">
+          <div className="auth-brand-row">
+            <div className="auth-brand-mark">
+              TP
+            </div>
+
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[.32em] text-blue-300">
+                TradePilot AI
+              </p>
+
+              <p className="mt-1 text-xs text-slate-500">
+                Trading intelligence workspace
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-10 lg:mt-12">
+            <div className="auth-pill auth-pill-success">
+              Free workspace included
+            </div>
+
+            <h1 className="mt-6 max-w-3xl text-4xl font-semibold leading-[1.08] sm:text-5xl xl:text-6xl">
+              Build your edge with
+              <span className="auth-gradient-text block">
+                structured intelligence.
+              </span>
+            </h1>
+
+            <p className="mt-6 max-w-2xl text-base leading-7 text-slate-400 sm:text-lg sm:leading-8">
+              Create your trading workspace, journal your decisions and turn
+              performance data into insights you can actually use.
+            </p>
+          </div>
+
+          <div className="mt-9 grid gap-4 sm:grid-cols-2">
+            {[
+              [
+                "Professional Journal",
+                "Track trades, setups, notes and outcomes in one workspace.",
+              ],
+              [
+                "Advanced Analytics",
+                "Measure performance, risk, consistency and behaviour.",
+              ],
+              [
+                "AI Trading Coach",
+                "Get analytical feedback on your process and psychology.",
+              ],
+              [
+                "Strategy Brain",
+                "Build, review and improve structured trading strategies.",
+              ],
+            ].map(([title,description])=>(
+              <div
+                key={title}
+                className="auth-feature-card"
+              >
+                <div className="auth-check">
+                  <Check className="size-4"/>
+                </div>
+
+                <div>
+                  <p className="text-sm font-semibold text-slate-200">
+                    {title}
+                  </p>
+
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    {description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="auth-free-card mt-8">
+            <div>
+              <p className="text-xs uppercase tracking-[.22em] text-emerald-300">
+                Start free
+              </p>
+
+              <p className="mt-2 text-lg font-semibold">
+                Your workspace is ready before you upgrade.
+              </p>
+
+              <p className="mt-2 max-w-xl text-sm leading-6 text-slate-400">
+                Create an account and begin with TradePilot AI Free.
+                Upgrade only when you want additional Pro or Premium intelligence.
+              </p>
+            </div>
+
+            <div className="auth-free-badge">
+              R0
+              <span>FREE</span>
+            </div>
+          </div>
+
+          <p className="mt-6 max-w-2xl text-xs leading-6 text-slate-600">
+            TradePilot AI provides analytical and educational tools and does not
+            guarantee profitability, investment results or trading performance.
+          </p>
+        </section>
+
+        <section className="mx-auto w-full max-w-md">
+          <form
+            onSubmit={sub}
+            className="auth-card"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[.25em] text-blue-300">
+                  Create workspace
+                </p>
+
+                <h2 className="mt-4 text-3xl font-semibold">
+                  Start your journey
+                </h2>
+
+                <p className="mt-2 text-sm leading-6 text-slate-400">
+                  Your account begins on the Free plan.
+                </p>
+              </div>
+
+              <div className="auth-plan-chip">
+                FREE
+              </div>
+            </div>
+
+            <div className="mt-7">
+              <label className="auth-label">
+                Email address
+              </label>
+
+              <input
+                className="auth-input"
+                type="email"
+                placeholder="you@example.com"
+                autoComplete="email"
+                value={email}
+                onChange={e=>setEmail(e.target.value)}
+                required
+              />
+
+              <label className="auth-label mt-5">
+                Password
+              </label>
+
+              <input
+                className="auth-input"
+                type="password"
+                placeholder="Minimum 8 characters"
+                autoComplete="new-password"
+                minLength={8}
+                value={password}
+                onChange={e=>setPassword(e.target.value)}
+                required
+              />
+
+              <label className="auth-label mt-5">
+                Confirm password
+              </label>
+
+              <input
+                className="auth-input"
+                type="password"
+                placeholder="Repeat your password"
+                autoComplete="new-password"
+                minLength={8}
+                value={confirmPassword}
+                onChange={e=>setConfirmPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <label className="auth-terms">
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={e=>setAcceptedTerms(e.target.checked)}
+                className="mt-0.5 size-4 shrink-0 accent-blue-500"
+              />
+
+              <span className="text-sm leading-6 text-slate-400">
+                I agree to the TradePilot AI Terms & Conditions
+                and acknowledge that trading involves financial risk.
+              </span>
+            </label>
+
+            {error&&(
+              <div className="mt-4 rounded-2xl border border-red-400/10 bg-red-400/10 p-3 text-sm text-red-300">
+                {error}
+              </div>
+            )}
+
+            <button
+              disabled={busy}
+              className="auth-primary-button"
+            >
+              {busy
+                ?"Creating workspace..."
+                :"Create free account"}
+            </button>
+
+            <div className="mt-5 grid grid-cols-3 gap-2 text-center">
+              {[
+                ["Free","Start"],
+                ["Secure","Account"],
+                ["Instant","Access"],
+              ].map(([top,bottom])=>(
+                <div
+                  key={top}
+                  className="rounded-xl border border-white/[.05] bg-white/[.02] px-2 py-3"
+                >
+                  <p className="text-xs font-semibold text-slate-300">
+                    {top}
+                  </p>
+                  <p className="mt-1 text-[10px] uppercase tracking-[.14em] text-slate-600">
+                    {bottom}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 border-t border-white/[.07] pt-6 text-center">
+              <span className="text-sm text-slate-500">
+                Already have an account?
+              </span>
+
+              <Link
+                to="/login"
+                className="ml-2 text-sm font-semibold text-blue-300 transition hover:text-blue-200"
+              >
+                Sign in
+              </Link>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+  )
+}
+
 const Money=({v}:{v?:number})=><>{new Intl.NumberFormat("en-ZA",{style:"currency",currency:"ZAR"}).format(v||0)}</>
 export function Dashboard(){const q=useQuery({queryKey:["dashboard"],queryFn:dashboard});if(q.isLoading)return <div className="premium-card flex min-h-[320px] items-center justify-center rounded-[2rem] p-8"><div className="text-center"><div className="mx-auto size-10 animate-spin rounded-full border-2 border-white/10 border-t-blue-400"></div><h2 className="mt-5 text-xl font-semibold">Loading your dashboard</h2><p className="mt-2 text-sm text-slate-400">Preparing your latest trading performance and insights.</p></div></div>;if(q.isError)return <div className="premium-card flex min-h-[320px] items-center justify-center rounded-[2rem] p-8"><div className="max-w-md text-center"><div className="mx-auto grid size-12 place-items-center rounded-2xl bg-red-400/10 text-xl font-semibold text-red-300">!</div><h2 className="mt-5 text-2xl font-semibold">Unable to load your dashboard</h2><p className="mt-3 text-slate-400">We couldn't retrieve your trading data. Check your connection and try again.</p><button type="button" onClick={()=>q.refetch()} className="mt-6 rounded-2xl bg-blue-500 px-5 py-3 font-semibold transition hover:bg-blue-400">Try again</button></div></div>;const d=q.data||{},s=d.summary||{},i=d.intelligence||{},eq=d.equity_curve||[];return <div className="space-y-6"><section className="premium-card grid-surface rounded-[2rem] p-5 sm:p-8"><p className="text-xs uppercase tracking-[.25em] text-blue-300">AI performance brief</p><h2 className="mt-4 text-3xl font-semibold sm:text-4xl">{i.headline?.title||"Your trading intelligence is ready."}</h2><p className="mt-3 text-slate-400">{i.headline?.message||"Performance analysis is active."}</p></section><section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{[["Net Profit",<Money v={s.net_profit}/>],["Win Rate",`${s.win_rate||0}%`],["Profit Factor",s.profit_factor||0],["Trader DNA",`${i.scorecard?.overall||0}/100`]].map(([a,b])=><div key={String(a)} className="premium-card rounded-3xl p-5"><p className="text-sm text-slate-500">{a}</p><p className="mt-3 text-3xl font-semibold">{b}</p></div>)}</section><div className="premium-card rounded-[2rem] p-5 sm:p-6"><h3 className="text-xl font-semibold">Equity curve</h3><div className="mt-5 h-64 sm:h-80">{eq.length?<ResponsiveContainer width="100%" height="100%"><AreaChart data={eq}><CartesianGrid stroke="rgba(148,163,184,.08)"/><XAxis dataKey="date"/><YAxis/><Tooltip/><Area type="monotone" dataKey="balance" stroke="#6d8dff" fill="#4f7cff33"/></AreaChart></ResponsiveContainer>:<div className="grid h-full place-items-center text-slate-500">No equity data yet</div>}</div></div></div>}
 const empty={broker:"Manual",ticket:"",pair:"XAUUSD",direction:"BUY" as "BUY"|"SELL",entry:"",exit_price:"",stop_loss:"",take_profit:"",lot_size:"",profit:"",strategy:"",emotion:"",notes:""}

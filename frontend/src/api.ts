@@ -37,6 +37,38 @@ export async function loginUser(
     access_token: token,
   }
 }
+
+export type RegisterResponse = {
+  message?: string
+  user_id?: number
+  error?: string
+}
+
+export async function registerUser(
+  email: string,
+  password: string,
+): Promise<RegisterResponse> {
+  const response = await api.post<RegisterResponse>(
+    "/auth/register",
+    {
+      email: email.trim().toLowerCase(),
+      password,
+    },
+  )
+
+  if (response.data?.error) {
+    throw new Error(response.data.error)
+  }
+
+  if (!response.data?.user_id) {
+    throw new Error(
+      "Account could not be created.",
+    )
+  }
+
+  return response.data
+}
+
 export const me=async()=>{for(const p of ["/auth/me","/profile/me"]){try{return (await api.get(p)).data}catch(e){if(axios.isAxiosError(e)&&e.response?.status===404)continue;throw e}}return null}
 export const dashboard=async()=>(await api.get("/analytics/dashboard")).data
 export const analysis=async()=>(await api.get("/analytics/analysis")).data
