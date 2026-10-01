@@ -3,6 +3,7 @@
   BrainCircuit,
   Building2,
   ChartNoAxesCombined,
+  Landmark,
   CreditCard,
   FileText,
   FlaskConical,
@@ -40,6 +41,11 @@ const navigation = [
         label: "Strategy Brain",
         icon: FlaskConical,
       },
+     {
+        path: "/macro-intelligence",
+        label: "Macro Intelligence",
+        icon: Landmark,
+    },
       {
         path: "/coach",
         label: "AI Coach",

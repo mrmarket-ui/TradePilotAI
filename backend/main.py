@@ -16,6 +16,7 @@ from routes.v1 import health
 from routes.v1 import auth
 from routes.v1 import profile
 from routes.v1 import brokers
+from routes.v1 import mt5_proposals
 from routes.v1 import trade
 from routes.v1 import trade_attachments
 from routes.v1 import analytics
@@ -46,6 +47,7 @@ from routes.v1 import weekly_review
 from routes.v1 import monthly_review
 from routes.v1 import subscriptions
 from routes.v1 import paypal
+from routes.v1 import macro_intelligence
 
 
 
@@ -102,6 +104,12 @@ app.include_router(
     brokers.router,
     prefix="/api/v1",
     tags=["Brokers"],
+)
+
+# MT5 trade proposals / trader approval
+app.include_router(
+    mt5_proposals.router,
+    prefix="/api/v1",
 )
 
 # Trades
@@ -231,6 +239,11 @@ app.include_router(
 )
 
 app.include_router(
+    macro_intelligence.router,
+    prefix="/api/v1",
+)
+
+app.include_router(
     admin.router,
     prefix="/api/v1",
 )
@@ -282,4 +295,5 @@ app.include_router(
     ai_signals.router,
     prefix="/api/v1",
 )
+
 

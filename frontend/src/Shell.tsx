@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { NavLink, Outlet, useLocation } from "react-router-dom"
 
 import {
@@ -7,11 +7,13 @@ import {
   BarChart3,
   BrainCircuit,
   Building2,
+  Cable,
   ChartNoAxesCombined,
   CreditCard,
   FileText,
   FlaskConical,
   LayoutDashboard,
+  Landmark,
   LockKeyhole,
   LogOut,
   Menu,
@@ -25,6 +27,9 @@ import {
 } from "lucide-react"
 
 import { useAuth } from "@/Auth"
+import OnboardingTour, {
+  ONBOARDING_REPLAY_EVENT,
+} from "@/components/OnboardingTour"
 
 const standardItems = [
   ["/dashboard", "Dashboard", LayoutDashboard],
@@ -38,10 +43,12 @@ const standardItems = [
 
 const premiumItems = [
   ["/strategy-lab", "Strategy Lab", FlaskConical],
+  ["/macro-intelligence", "Macro Intelligence", Landmark],
   ["/setup-scorer", "Setup Scorer", Target],
   ["/strategy-importer", "AI Strategy Import", UploadCloud],
   ["/ai-signal-lab", "AI Signal Lab", Target],
   ["/paper-trading", "Paper Trading", WalletCards],
+  ["/mt5-trading", "MT5 Trading", Cable],
 ] as const
 
 const remainingItems = [
@@ -152,6 +159,21 @@ export default function Shell() {
 
       <button
         type="button"
+        onClick={() => {
+          window.dispatchEvent(
+            new Event(
+              ONBOARDING_REPLAY_EVENT,
+            ),
+          )
+        }}
+        className="mx-4 mb-1 flex items-center gap-3 rounded-2xl px-4 py-3 text-sm text-slate-400 transition hover:bg-white/[0.04] hover:text-white"
+      >
+        <Sparkles className="size-5" />
+        Replay app tutorial
+      </button>
+
+      <button
+        type="button"
         onClick={logout}
         className="m-4 mt-2 flex items-center gap-3 rounded-2xl px-4 py-3 text-slate-400 transition hover:bg-white/[0.04] hover:text-white"
       >
@@ -163,6 +185,11 @@ export default function Shell() {
 
   return (
     <div className="min-h-screen bg-[#060912] text-slate-100">
+      <OnboardingTour
+        userId={user?.id}
+        plan={user?.plan}
+        isAdmin={Boolean(user?.is_admin)}
+      />
       <aside className="fixed inset-y-0 left-0 hidden w-72 border-r border-white/10 bg-[#080d18]/95 lg:block">
         <div className="flex h-full flex-col">
           <div className="flex h-20 items-center gap-3 px-6">

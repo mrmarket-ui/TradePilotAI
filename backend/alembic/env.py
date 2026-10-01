@@ -1,4 +1,4 @@
-from logging.config import fileConfig
+﻿from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
 from alembic import context
@@ -29,6 +29,7 @@ if config.config_file_name is not None:
 from models.user import User
 from models.trade import Trade
 from models.broker_account import BrokerAccount
+from models.mt5_trade_proposal import MT5TradeProposal
 
 target_metadata = Base.metadata
 

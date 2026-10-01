@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+from datetime import datetime
 from pathlib import Path
 from uuid import uuid4
 
@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from database.database import get_db
 from dependencies.auth import get_current_user
+from dependencies.subscription import require_premium_plan
 from models.strategy_source import StrategySource
 from models.user import User
 from schemas.strategy_profile import StrategyProfileCreate
@@ -41,6 +42,9 @@ from services.strategy_ingestion.extractor import (
 router = APIRouter(
     prefix="/strategy-sources",
     tags=["Strategy Sources"],
+    dependencies=[
+        Depends(require_premium_plan),
+    ],
 )
 
 

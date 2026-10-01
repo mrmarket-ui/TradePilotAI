@@ -1,0 +1,353 @@
+[1mdiff --git a/frontend/src/App.tsx b/frontend/src/App.tsx[m
+[1mindex 9fcdcbe..5f28270 100644[m
+[1m--- a/frontend/src/App.tsx[m
+[1m+++ b/frontend/src/App.tsx[m
+[36m@@ -1,346 +1 @@[m
+[31m-import {[m
+[31m-  Navigate,[m
+[31m-  Outlet,[m
+[31m-  Route,[m
+[31m-  Routes,[m
+[31m-} from "react-router-dom"[m
+[31m-[m
+[31m-import { useAuth } from "@/Auth"[m
+[31m-import Shell from "@/Shell"[m
+[31m-[m
+[31m-import {[m
+[31m-  Analytics,[m
+[31m-  Billing,[m
+[31m-  Coach,[m
+[31m-  DNA,[m
+[31m-  Login,[m
+[31m-  Register,[m
+[31m-  Reports,[m
+[31m-  Settings,[m
+[31m-  Trades,[m
+[31m-} from "@/pages"[m
+[31m-[m
+[31m-import DashboardPage from "@/pages/DashboardPage"[m
+[31m-import AdvancedAnalyticsPage from "@/pages/AdvancedAnalyticsPage"[m
+[31m-import TradingCalendarPage from "@/pages/TradingCalendarPage"[m
+[31m-import StrategyLabPage from "@/pages/StrategyLabPage"[m
+[31m-import SetupScorerPage from "@/pages/SetupScorerPage"[m
+[31m-import StrategyImporterPage from "@/pages/StrategyImporterPage"[m
+[31m-import AISignalLabPage from "@/pages/AISignalLabPage"[m
+[31m-import PaperTradingPage from "@/pages/PaperTradingPage"[m
+[31m-import PartnersPage from "@/pages/PartnersPage"[m
+[31m-import PartnerDetailPage from "@/pages/PartnerDetailPage"[m
+[31m-import PartnerComparePage from "@/pages/PartnerComparePage"[m
+[31m-import PartnerMatchPage from "@/pages/PartnerMatchPage"[m
+[31m-[m
+[31m-import AdminLayout from "@/pages/admin/AdminLayout"[m
+[31m-import AdminDashboard from "@/pages/admin/AdminDashboard"[m
+[31m-import AdminUsers from "@/pages/admin/AdminUsers"[m
+[31m-import AdminSubscriptions from "@/pages/admin/AdminSubscriptions"[m
+[31m-import AdminSystem from "@/pages/admin/AdminSystem"[m
+[31m-import AdminPartners from "@/pages/admin/AdminPartners"[m
+[31m-import AdminPartnerAnalytics from "@/pages/admin/AdminPartnerAnalytics"[m
+[31m-import AdminPartnerOffers from "@/pages/admin/AdminPartnerOffers"[m
+[31m-[m
+[31m-[m
+[31m-function LoadingScreen({[m
+[31m-  message = "Loading...",[m
+[31m-}: {[m
+[31m-  message?: string[m
+[31m-}) {[m
+[31m-  return ([m
+[31m-    <div className="grid min-h-[50vh] place-items-center text-slate-400">[m
+[31m-      {message}[m
+[31m-    </div>[m
+[31m-  )[m
+[31m-}[m
+[31m-[m
+[31m-[m
+[31m-function Protected() {[m
+[31m-  const {[m
+[31m-    isAuthenticated,[m
+[31m-    isLoading,[m
+[31m-  } = useAuth()[m
+[31m-[m
+[31m-  if (isLoading) {[m
+[31m-    return ([m
+[31m-      <LoadingScreen />[m
+[31m-    )[m
+[31m-  }[m
+[31m-[m
+[31m-  return isAuthenticated ? ([m
+[31m-    <Shell />[m
+[31m-  ) : ([m
+[31m-    <Navigate[m
+[31m-      to="/login"[m
+[31m-      replace[m
+[31m-    />[m
+[31m-  )[m
+[31m-}[m
+[31m-[m
+[31m-[m
+[31m-function PaidProtected() {[m
+[31m-  const {[m
+[31m-    user,[m
+[31m-    isLoading,[m
+[31m-  } = useAuth()[m
+[31m-[m
+[31m-  if (isLoading) {[m
+[31m-    return ([m
+[31m-      <LoadingScreen[m
+[31m-        message="Checking subscription..."[m
+[31m-      />[m
+[31m-    )[m
+[31m-  }[m
+[31m-[m
+[31m-  if (user?.is_admin) {[m
+[31m-    return <Outlet />[m
+[31m-  }[m
+[31m-[m
+[31m-  const plan =[m
+[31m-    user?.plan?.toLowerCase() ||[m
+[31m-    "free"[m
+[31m-[m
+[31m-  if ([m
+[31m-    plan !== "pro" &&[m
+[31m-    plan !== "premium"[m
+[31m-  ) {[m
+[31m-    return ([m
+[31m-      <Navigate[m
+[31m-        to="/billing"[m
+[31m-        replace[m
+[31m-      />[m
+[31m-    )[m
+[31m-  }[m
+[31m-[m
+[31m-  return <Outlet />[m
+[31m-}[m
+[31m-[m
+[31m-[m
+[31m-function PremiumProtected() {[m
+[31m-  const {[m
+[31m-    user,[m
+[31m-    isLoading,[m
+[31m-  } = useAuth()[m
+[31m-[m
+[31m-  if (isLoading) {[m
+[31m-    return ([m
+[31m-      <LoadingScreen[m
+[31m-        message="Checking Premium access..."[m
+[31m-      />[m
+[31m-    )[m
+[31m-  }[m
+[31m-[m
+[31m-  // Owner/admin always receives full access.[m
+[31m-  if (user?.is_admin) {[m
+[31m-    return <Outlet />[m
+[31m-  }[m
+[31m-[m
+[31m-  if ([m
+[31m-    user?.plan?.toLowerCase()[m
+[31m-    !== "premium"[m
+[31m-  ) {[m
+[31m-    return ([m
+[31m-      <Navigate[m
+[31m-        to="/billing"[m
+[31m-        replace[m
+[31m-      />[m
+[31m-    )[m
+[31m-  }[m
+[31m-[m
+[31m-  return <Outlet />[m
+[31m-}[m
+[31m-[m
+[31m-[m
+[31m-function AdminProtected() {[m
+[31m-  const {[m
+[31m-    user,[m
+[31m-    isLoading,[m
+[31m-  } = useAuth()[m
+[31m-[m
+[31m-  if (isLoading) {[m
+[31m-    return ([m
+[31m-      <LoadingScreen[m
+[31m-        message="Checking administrator access..."[m
+[31m-      />[m
+[31m-    )[m
+[31m-  }[m
+[31m-[m
+[31m-  if (!user?.is_admin) {[m
+[31m-    return ([m
+[31m-      <Navigate[m
+[31m-        to="/dashboard"[m
+[31m-        replace[m
+[31m-      />[m
+[31m-    )[m
+[31m-  }[m
+[31m-[m
+[31m-  return <Outlet />[m
+[31m-}[m
+[31m-[m
+[31m-[m
+[31m-export default function App() {[m
+[31m-  return ([m
+[31m-    <Routes>[m
+[31m-      <Route[m
+[31m-        path="/login"[m
+[31m-        element={<Login />}[m
+[31m-      />[m
+[31m-[m
+[31m-      <Route[m
+[31m-        path="/register"[m
+[31m-        element={<Register />}[m
+[31m-      />[m
+[31m-[m
+[31m-      <Route element={<Protected />}>[m
+[31m-        {/* FREE */}[m
+[31m-        <Route[m
+[31m-          path="/dashboard"[m
+[31m-          element={<DashboardPage />}[m
+[31m-        />[m
+[31m-[m
+[31m-        <Route[m
+[31m-          path="/trades"[m
+[31m-          element={<Trades />}[m
+[31m-        />[m
+[31m-[m
+[31m-        <Route[m
+[31m-          path="/advanced-analytics"[m
+[31m-          element={<AdvancedAnalyticsPage />}[m
+[31m-        />[m
+[31m-[m
+[31m-        <Route[m
+[31m-          path="/trading-calendar"[m
+[31m-          element={<TradingCalendarPage />}[m
+[31m-        />[m
+[31m-[m
+[31m-        <Route[m
+[31m-          path="/partners"[m
+[31m-          element={<PartnersPage />}[m
+[31m-        />[m
+[31m-[m
+[31m-        <Route[m
+[31m-          path="/billing"[m
+[31m-          element={<Billing />}[m
+[31m-        />[m
+[31m-[m
+[31m-        <Route[m
+[31m-          path="/settings"[m
+[31m-          element={<Settings />}[m
+[31m-        />[m
+[31m-[m
+[31m-        {/* PRO + PREMIUM + ADMIN */}[m
+[31m-        <Route element={<PaidProtected />}>[m
+[31m-          <Route[m
+[31m-            path="/analytics"[m
+[31m-            element={<Analytics />}[m
+[31m-          />[m
+[31m-[m
+[31m-          <Route[m
+[31m-            path="/trader-dna"[m
+[31m-            element={<DNA />}[m
+[31m-          />[m
+[31m-[m
+[31m-          <Route[m
+[31m-            path="/coach"[m
+[31m-            element={<Coach />}[m
+[31m-          />[m
+[31m-[m
+[31m-          <Route[m
+[31m-            path="/reports"[m
+[31m-            element={<Reports />}[m
+[31m-          />[m
+[31m-        </Route>[m
+[31m-[m
+[31m-        {/* PREMIUM + ADMIN */}[m
+[31m-        <Route element={<PremiumProtected />}>[m
+[31m-          <Route[m
+[31m-            path="/strategy-lab"[m
+[31m-            element={<StrategyLabPage />}[m
+[31m-          />[m
+[31m-[m
+[31m-          <Route[m
+[31m-            path="/setup-scorer"[m
+[31m-            element={<SetupScorerPage />}[m
+[31m-          />[m
+[31m-          <Route[m
+[31m-            path="/strategy-importer"[m
+[31m-            element={<StrategyImporterPage />}[m
+[31m-          />[m
+[31m-          <Route[m
+[31m-            path="/ai-signal-lab"[m
+[31m-            element={<AISignalLabPage />}[m
+[31m-          />[m
+[31m-          <Route[m
+[31m-            path="/paper-trading"[m
+[31m-            element={<PaperTradingPage />}[m
+[31m-          />[m
+[31m-        </Route>[m
+[31m-[m
+[31m-        {/* ADMIN ONLY */}[m
+[31m-        <Route element={<AdminProtected />}>[m
+[31m-          <Route[m
+[31m-            path="/admin"[m
+[31m-            element={<AdminLayout />}[m
+[31m-          >[m
+[31m-            <Route[m
+[31m-              index[m
+[31m-              element={<AdminDashboard />}[m
+[31m-            />[m
+[31m-[m
+[31m-            <Route[m
+[31m-              path="users"[m
+[31m-              element={<AdminUsers />}[m
+[31m-            />[m
+[31m-[m
+[31m-            <Route[m
+[31m-              path="subscriptions"[m
+[31m-              element={<AdminSubscriptions />}[m
+[31m-            />[m
+[31m-[m
+[31m-            <Route[m
+[31m-              path="partners"[m
+[31m-              element={<AdminPartners />}[m
+[31m-            />[m
+[31m-            <Route[m
+[31m-              path="partner-analytics"[m
+[31m-              element={<AdminPartnerAnalytics />}[m
+[31m-            />[m
+[31m-            <Route[m
+[31m-              path="partner-offers"[m
+[31m-              element={<AdminPartnerOffers />}[m
+[31m-            />[m
+[31m-[m
+[31m-            <Route[m
+[31m-              path="system"[m
+[31m-              element={<AdminSystem />}[m
+[31m-            />[m
+[31m-          </Route>[m
+[31m-        </Route>[m
+[31m-      </Route>[m
+[31m-[m
+[31m-      <Route[m
+[31m-        path="*"[m
+[31m-        element={[m
+[31m-          <Navigate[m
+[31m-            to="/dashboard"[m
+[31m-            replace[m
+[31m-          />[m
+[31m-        }[m
+[31m-      />[m
+[31m-    </Routes>[m
+[31m-  )[m
+[31m-}[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[32m+[m[32m﻿[m
+\ No newline at end of file[m

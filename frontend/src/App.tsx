@@ -28,6 +28,8 @@ import SetupScorerPage from "@/pages/SetupScorerPage"
 import StrategyImporterPage from "@/pages/StrategyImporterPage"
 import AISignalLabPage from "@/pages/AISignalLabPage"
 import PaperTradingPage from "@/pages/PaperTradingPage"
+import MT5TradingPage from "@/pages/MT5TradingPage"
+import MacroIntelligencePage from "@/pages/MacroIntelligencePage"
 import PartnersPage from "@/pages/PartnersPage"
 import PartnerDetailPage from "@/pages/PartnerDetailPage"
 import PartnerComparePage from "@/pages/PartnerComparePage"
@@ -220,6 +222,21 @@ export default function App() {
         />
 
         <Route
+          path="/partners/compare"
+          element={<PartnerComparePage />}
+        />
+
+        <Route
+          path="/partners/match"
+          element={<PartnerMatchPage />}
+        />
+
+        <Route
+          path="/partners/:slug"
+          element={<PartnerDetailPage />}
+        />
+
+        <Route
           path="/billing"
           element={<Billing />}
         />
@@ -274,6 +291,15 @@ export default function App() {
           <Route
             path="/paper-trading"
             element={<PaperTradingPage />}
+          />
+          <Route
+            path="/mt5-trading"
+            element={<MT5TradingPage />}
+          />
+
+          <Route
+            path="/macro-intelligence"
+            element={<MacroIntelligencePage />}
           />
         </Route>
 

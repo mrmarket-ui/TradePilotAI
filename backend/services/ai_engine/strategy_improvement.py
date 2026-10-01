@@ -124,7 +124,7 @@ Return VALID JSON ONLY:
       "title": "",
       "reason": "",
       "field": "",
-      "action": "append | set",
+      "action": "append | replace | set",
       "value": "",
       "projected_impact": 0
     }}
@@ -247,9 +247,7 @@ def improve_strategy_gemini(
             message = str(exc)
 
             if (
-                "429" in message
-                or "RESOURCE_EXHAUSTED" in message
-                or "503" in message
+                "503" in message
                 or "504" in message
                 or "UNAVAILABLE" in message
                 or "DEADLINE_EXCEEDED" in message
@@ -257,19 +255,6 @@ def improve_strategy_gemini(
                 continue
 
             raise
-
-    last_message = str(
-        last_error or ""
-    )
-
-    if (
-        "429" in last_message
-        or "RESOURCE_EXHAUSTED" in last_message
-    ):
-        raise RuntimeError(
-            "AI service quota reached. "
-            "Please try again later."
-        ) from last_error
 
     raise RuntimeError(
         "AI improvement service is busy. "
@@ -364,6 +349,7 @@ def normalize_improvements(
 
         if action not in {
             "append",
+            "replace",
             "set",
         }:
             action = "append"
@@ -467,25 +453,6 @@ def normalize_improvements(
                     "",
                 )
                 or ""
-            ).strip(),
-
-        "disclaimer":
-            str(
-                result.get(
-                    "disclaimer",
-                    (
-                        "AI strategy analysis is educational "
-                        "decision-support only. A higher strategy "
-                        "score does not guarantee profitability "
-                        "or future trading performance."
-                    ),
-                )
-                or (
-                    "AI strategy analysis is educational "
-                    "decision-support only. A higher strategy "
-                    "score does not guarantee profitability "
-                    "or future trading performance."
-                )
             ).strip(),
 
         "suggestions":

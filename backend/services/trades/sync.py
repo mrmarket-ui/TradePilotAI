@@ -1,4 +1,4 @@
-from datetime import datetime
+﻿from datetime import datetime
 
 from sqlalchemy.orm import Session
 
@@ -8,7 +8,7 @@ from services.security.encryption import decrypt
 from services.brokers.mt5 import (
     connect,
     disconnect,
-    get_history
+    get_history,
 )
 
 from services.trades.parser import parse_deal
@@ -17,9 +17,8 @@ from services.trades.saver import save_trade
 
 def sync_account(
     db: Session,
-    account: BrokerAccount
+    account: BrokerAccount,
 ):
-
     password = decrypt(
         account.encrypted_password
     )
@@ -27,50 +26,54 @@ def sync_account(
     success, message = connect(
         int(account.account_number),
         password,
-        account.server
+        account.server,
     )
 
     if not success:
-
         return {
             "success": False,
-            "message": str(message)
+            "message": str(message),
         }
 
-    deals = get_history(
-        datetime(2000, 1, 1),
-        datetime.now()
-    )
-
-    imported = 0
-    skipped = 0
-
-    for deal in deals:
-
-        trade = parse_deal(
-            deal,
-            account.user_id,
-            account.broker
+    try:
+        deals = get_history(
+            datetime(2000, 1, 1),
+            datetime.now(),
         )
 
-        saved = save_trade(
-            db,
-            trade
-        )
+        imported = 0
+        skipped = 0
 
-        if saved:
-            imported += 1
-        else:
-            skipped += 1
+        for deal in deals:
+            trade = parse_deal(
+                deal,
+                account.user_id,
+                account.broker,
+            )
 
-    account.last_sync = datetime.utcnow()
+            saved = save_trade(
+                db,
+                trade,
+            )
 
-    db.commit()
+            if saved:
+                imported += 1
+            else:
+                skipped += 1
 
-    disconnect()
+        account.last_sync = datetime.utcnow()
 
-    return {
-        "success": True,
-        "imported": imported,
-        "skipped": skipped
-    }
+        db.commit()
+
+        return {
+            "success": True,
+            "imported": imported,
+            "skipped": skipped,
+        }
+
+    except Exception:
+        db.rollback()
+        raise
+
+    finally:
+        disconnect()
