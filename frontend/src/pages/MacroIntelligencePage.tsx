@@ -1,4 +1,4 @@
-﻿import { useState } from "react"
+import { useState } from "react"
 import {
   AlertTriangle,
   CheckCircle2,
@@ -266,6 +266,58 @@ function RulesCrossCheck({
           : ""}
       </p>
     </section>
+  )
+}
+
+function ReconciledNotice({
+  analysis,
+}: {
+  analysis: GeneralMacroAnalysisResponse
+}) {
+  const adapted = toUSDEvents(analysis)
+
+  if (adapted.events.length === 0) return null
+
+  const intel = buildUSDIntelligence(
+    analyseUSDEconomicEvents(adapted.events),
+  )
+
+  const engineDirection = intel.base.bias.includes("bullish")
+    ? "BULLISH"
+    : intel.base.bias.includes("bearish")
+      ? "BEARISH"
+      : "NEUTRAL"
+
+  const aiBias = String(analysis.usd_bias).toUpperCase()
+
+  const agrees =
+    aiBias === engineDirection ||
+    (engineDirection === "NEUTRAL" &&
+      aiBias !== "BULLISH" &&
+      aiBias !== "BEARISH")
+
+  if (agrees) return null
+
+  return (
+    <div className="mt-6 flex items-start gap-3 rounded-2xl border border-amber-400/20 bg-amber-400/[0.05] p-4">
+      <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-300" />
+
+      <div>
+        <p className="text-sm font-semibold text-amber-100">
+          Unresolved: the AI reads {aiBias}, the rules engine reads{" "}
+          {engineDirection}.
+        </p>
+
+        <p className="mt-1 text-sm leading-6 text-amber-200/70">
+          The headline above is the AI&apos;s reading (
+          {Math.round(analysis.usd_bias_confidence)}%). The rules engine,
+          which scores the extracted numbers directly, finds the evidence{" "}
+          {confirmationLabel[intel.confirmation].toLowerCase()} at{" "}
+          {intel.adjustedConfidence}% confidence. Treat the direction as
+          unresolved and review the Rules Cross-Check below.
+        </p>
+      </div>
+    </div>
   )
 }
 
@@ -556,6 +608,8 @@ You do not need to format the information. TradePilot AI will read the submissio
                 </div>
               </div>
             </div>
+
+            <ReconciledNotice analysis={analysis} />
 
             <div className="mt-6 grid gap-4 lg:grid-cols-2">
               <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-5">
