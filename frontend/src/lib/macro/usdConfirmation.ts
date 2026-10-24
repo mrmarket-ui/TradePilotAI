@@ -1,4 +1,4 @@
-﻿import type { EventAnalysis, USDAnalysisResult } from "./usdEconomicEngine";
+import type { EventAnalysis, USDAnalysisResult } from "./usdEconomicEngine";
 
 export type EvidenceCategory =
   | "inflation"
@@ -43,7 +43,7 @@ export interface USDIntelligence {
 }
 
 const CATEGORY_RULES: Array<[EvidenceCategory, string[]]> = [
-  ["inflation", ["ppi", "cpi", "prices"]],
+  ["inflation", ["ppi", "cpi", "pce", "prices", "price index"]],
   ["services", ["services pmi"]],
   ["manufacturing", ["manufacturing", "factory orders", "industrial production"]],
   [

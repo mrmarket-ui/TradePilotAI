@@ -1,4 +1,4 @@
-﻿
+
 
 export interface EconomicEvent {
   currency: string;
@@ -72,6 +72,11 @@ const HIGHER_IS_BULLISH = [
   "consumer confidence",
   "consumer sentiment",
   "jolts job openings",
+  "core pce",
+  "pce price index",
+  "personal income",
+  "personal spending",
+  "wholesale inventories",
   "factory orders",
   "construction spending"
 ];
@@ -94,6 +99,8 @@ const HIGH_IMPACT = [
   "fomc",
   "interest rate",
   "federal funds",
+  "core pce",
+  "pce price index",
   "ism services",
   "ism manufacturing",
   "ppi"
@@ -109,6 +116,8 @@ const MEDIUM_IMPACT = [
   "gdp",
   "factory orders",
   "construction spending",
+  "personal income",
+  "personal spending",
   "trade balance"
 ];
 

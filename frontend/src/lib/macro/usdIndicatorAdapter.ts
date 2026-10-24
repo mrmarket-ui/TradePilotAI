@@ -1,4 +1,4 @@
-﻿import type { EconomicEvent } from "./usdEconomicEngine";
+import type { EconomicEvent } from "./usdEconomicEngine";
 
 /** The subset of the General Macro response the adapter needs. */
 export interface AdapterInput {
@@ -76,6 +76,10 @@ export function toUSDEvents(input: AdapterInput): AdapterResult {
     const forecast = parseIndicatorValue(item.forecast);
     const previous = parseIndicatorValue(item.previous);
 
+    if (/\b(CAD|EUR|GBP|JPY|AUD|NZD|CHF|CNY)\b/i.test(item.indicator)) {
+      skipped.push(`${item.indicator}: not a USD indicator`);
+      continue;
+    }
     if (actual === null) {
       skipped.push(`${item.indicator}: no numeric actual value`);
       continue;
