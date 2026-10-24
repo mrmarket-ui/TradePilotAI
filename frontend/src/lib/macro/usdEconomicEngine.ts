@@ -129,14 +129,24 @@ function normalize(name: string): string {
 }
 
 function contains(name: string, values: string[]): boolean {
-  return values.some((value) => name.includes(value));
+  return values.some((value) => name.includes(normalize(value)));
 }
 
+/*
+ * Month-on-month / quarter-on-quarter / year-on-year releases are small
+ * numbers around zero, so a plain percentage of the forecast explodes
+ * (for example -0.2 vs 0.1 reads as a -300% surprise). For these releases
+ * the denominator has a floor so the surprise is scaled in percentage points.
+ */
+function isChangeIndicator(event: EconomicEvent): boolean {
+  return /\b(m m|q q|y y|mom|qoq|yoy)\b/.test(normalize(event.event));
+}
 function impactFor(event: EconomicEvent): "high" | "medium" | "low" {
   if (event.impact) return event.impact;
 
   const name = normalize(event.event);
 
+  if (name.startsWith("adp")) return "medium";
   if (contains(name, HIGH_IMPACT)) return "high";
   if (contains(name, MEDIUM_IMPACT)) return "medium";
 
@@ -254,9 +264,11 @@ export function analyseUSDEvent(
   const surprise = event.actual - event.forecast;
 
   const denominator =
-    Math.abs(event.forecast) > 0.000001
-      ? Math.abs(event.forecast)
-      : 1;
+    isChangeIndicator(event)
+      ? Math.max(Math.abs(event.forecast), 2)
+      : Math.abs(event.forecast) > 0.000001
+        ? Math.abs(event.forecast)
+        : 1;
 
   const surprisePercent =
     (surprise / denominator) * 100;
@@ -433,3 +445,5 @@ export function analyseUSDEconomicEvents(
     keyDrivers
   };
 }
+
+

@@ -890,29 +890,65 @@ MULTI-SOURCE RULES:
 
     client = _get_gemini_client()
 
-    try:
-        response = client.models.generate_content(
-            model=GEMINI_MODEL,
-            contents=contents,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                temperature=0.0,
-            ),
-        )
-    except Exception as exc:
+    response = None
+    models_to_try = [GEMINI_MODEL]
+    if GEMINI_MODEL != "gemini-3.6-flash":
+        models_to_try.append("gemini-3.6-flash")
+
+    last_exc = None
+
+    for model_name in models_to_try:
+        for attempt in range(2):
+            try:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=contents,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        temperature=0.0,
+                    ),
+                )
+                break
+            except Exception as exc:
+                last_exc = exc
+                message = str(exc)
+                transient = any(
+                    marker in message
+                    for marker in (
+                        "503",
+                        "429",
+                        "UNAVAILABLE",
+                        "RESOURCE_EXHAUSTED",
+                        "overloaded",
+                    )
+                )
+                __import__("logging").getLogger("uvicorn.error").error(
+                    "General macro call failed (model %s, attempt %s/2): %s: %s",
+                    model_name,
+                    attempt + 1,
+                    type(exc).__name__,
+                    exc,
+                )
+                if not transient:
+                    break
+                if attempt == 0:
+                    __import__("time").sleep(3)
+
+        if response is not None:
+            break
+
+    if response is None:
         raise RuntimeError(
             "AI economic evidence analysis is temporarily unavailable."
-        ) from exc
+        ) from last_exc
 
     if not response.text:
         raise RuntimeError(
             "AI returned no macro analysis."
         )
 
-    raw = _clean_json(response.text)
-
     try:
-        result = json.loads(raw)
+        result = _clean_json(response.text)
     except Exception as exc:
         raise RuntimeError(
             "AI returned invalid macro analysis."

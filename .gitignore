@@ -53,3 +53,9 @@ frontend/src/pages.before-*.tsx
 # Local project backups
 frontend_backup/
 frontend_shell_backup/
+
+# Intermediate backups
+*.v1
+.venv/
+upgrade_backups/
+**/pre_nfp_upgrade_backup/

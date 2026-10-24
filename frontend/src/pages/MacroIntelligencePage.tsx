@@ -16,6 +16,12 @@ import {
   analyzeGeneralMacroEvidence,
   type GeneralMacroAnalysisResponse,
 } from "@/api/macroIntelligence"
+import { analyseUSDEconomicEvents } from "@/lib/macro/usdEconomicEngine"
+import {
+  buildUSDIntelligence,
+  type ConfirmationLevel,
+} from "@/lib/macro/usdConfirmation"
+import { toUSDEvents } from "@/lib/macro/usdIndicatorAdapter"
 
 type MacroEvent = "GENERAL" | "NFP" | "CPI" | "PPI" | "FOMC"
 
@@ -76,6 +82,191 @@ function relevanceClass(
 
 function valueOrDash(value: string | null) {
   return value?.trim() ? value : "—"
+}
+
+const confirmationLabel: Record<ConfirmationLevel, string> = {
+  strongly_confirmed: "Strongly confirmed",
+  confirmed: "Confirmed",
+  partial: "Partially confirmed",
+  conflicted: "Conflicted",
+  insufficient: "Insufficient evidence",
+}
+
+function RulesCrossCheck({
+  analysis,
+}: {
+  analysis: GeneralMacroAnalysisResponse
+}) {
+  const adapted = toUSDEvents(analysis)
+
+  if (adapted.events.length === 0) {
+    return (
+      <section className="premium-card rounded-3xl p-6">
+        <h3 className="font-semibold text-white">Rules Cross-Check</h3>
+
+        <p className="mt-2 text-sm leading-6 text-slate-500">
+          {adapted.reason ??
+            "No numeric indicators were available for the rules engine."}
+        </p>
+      </section>
+    )
+  }
+
+  const intel = buildUSDIntelligence(
+    analyseUSDEconomicEvents(adapted.events),
+  )
+  const base = intel.base
+
+  const engineDirection = base.bias.includes("bullish")
+    ? "BULLISH"
+    : base.bias.includes("bearish")
+      ? "BEARISH"
+      : "NEUTRAL"
+
+  const aiBias = String(analysis.usd_bias).toUpperCase()
+
+  const agrees =
+    aiBias === engineDirection ||
+    (engineDirection === "NEUTRAL" &&
+      aiBias !== "BULLISH" &&
+      aiBias !== "BEARISH")
+
+  const scored = base.bullishEvents + base.bearishEvents
+
+  return (
+    <section className="premium-card rounded-3xl p-6">
+      <div className="flex items-center gap-2">
+        <ShieldCheck className="size-5 text-blue-300" />
+
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-300">
+            Rules Cross-Check
+          </p>
+
+          <h3 className="mt-1 font-semibold text-white">
+            Deterministic engine on the extracted numbers
+          </h3>
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-4 md:grid-cols-3">
+        <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
+          <p className="text-[10px] uppercase tracking-[0.16em] text-slate-500">
+            Rules engine bias
+          </p>
+          <p className="mt-1 text-lg font-semibold text-white">
+            {base.bias.replace("_", " ").toUpperCase()}
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            Net score {base.score}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
+          <p className="text-[10px] uppercase tracking-[0.16em] text-slate-500">
+            Confirmation
+          </p>
+          <p className="mt-1 text-lg font-semibold text-white">
+            {confirmationLabel[intel.confirmation]}
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            Confidence {intel.baseConfidence}% to {intel.adjustedConfidence}%
+            after confirmation
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
+          <p className="text-[10px] uppercase tracking-[0.16em] text-slate-500">
+            AI assessment
+          </p>
+          <p className="mt-1 text-lg font-semibold text-white">
+            {String(analysis.usd_bias)}
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            Confidence {Math.round(analysis.usd_bias_confidence)}%
+          </p>
+        </div>
+      </div>
+
+      <div
+        className={`mt-4 rounded-2xl border p-4 text-sm leading-6 ${
+          agrees
+            ? "border-emerald-400/15 bg-emerald-400/[0.04] text-emerald-200/80"
+            : "border-amber-400/20 bg-amber-400/[0.05] text-amber-200/80"
+        }`}
+      >
+        {agrees
+          ? "The AI assessment and the rules engine point the same way."
+          : "The AI assessment and the rules engine disagree. Treat the direction as unresolved and review the extracted values above."}
+      </div>
+
+      <p className="mt-4 text-sm leading-6 text-slate-400">
+        {intel.explanation}
+      </p>
+
+      {intel.categories.length > 0 ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {intel.categories.map((category) => (
+            <span
+              key={category.category}
+              className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-1.5 text-xs text-slate-300"
+            >
+              {category.category}: {category.stance} ({category.score})
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      {intel.risks.length > 0 ? (
+        <div className="mt-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+            Risks
+          </p>
+
+          <div className="mt-2 space-y-1.5 text-sm leading-6 text-slate-400">
+            {intel.risks.map((item, index) => (
+              <p key={`${item}-${index}`}>• {item}</p>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {intel.invalidation.length > 0 ? (
+        <div className="mt-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+            What would change this view
+          </p>
+
+          <div className="mt-2 space-y-1.5 text-sm leading-6 text-slate-400">
+            {intel.invalidation.map((item, index) => (
+              <p key={`${item}-${index}`}>• {item}</p>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="mt-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+          Not available from supplied evidence
+        </p>
+
+        <div className="mt-2 space-y-1.5 text-sm leading-6 text-slate-500">
+          {intel.unavailable.map((item, index) => (
+            <p key={`${item}-${index}`}>• {item}</p>
+          ))}
+        </div>
+      </div>
+
+      <p className="mt-5 text-xs leading-5 text-slate-500">
+        {scored} of {base.totalEvents} indicators were scored directionally.
+        Indicators the engine does not recognise are treated as neutral
+        context.
+        {adapted.skipped.length > 0
+          ? ` ${adapted.skipped.length} had no numeric actual value and were skipped.`
+          : ""}
+      </p>
+    </section>
+  )
 }
 
 export default function MacroIntelligencePage() {
@@ -552,6 +743,8 @@ You do not need to format the information. TradePilot AI will read the submissio
             </div>
           </section>
 
+          <RulesCrossCheck analysis={analysis} />
+
           {analysis.contradictions.length > 0 ? (
             <section className="premium-card rounded-3xl p-6">
               <div className="flex items-center gap-2">
@@ -672,3 +865,4 @@ You do not need to format the information. TradePilot AI will read the submissio
     </div>
   )
 }
+
