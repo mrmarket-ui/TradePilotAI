@@ -1,4 +1,4 @@
-﻿"""
+"""
 TradePilot AI Trader DNA strength analysis.
 """
 
@@ -58,7 +58,5 @@ def identify_strengths(
     ):
         strengths.append("Maintains session discipline")
 
-    if not strengths:
-        strengths.append("Shows commitment to improving")
 
     return strengths

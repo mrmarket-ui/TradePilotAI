@@ -1,4 +1,4 @@
-﻿from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field
 
 
 class WeeklyMetrics(BaseModel):
@@ -16,11 +16,13 @@ class WeeklyMetrics(BaseModel):
 class WeeklyReviewResponse(BaseModel):
     period_start: str
     period_end: str
-    grade: str
-    score: float
+    grade: str | None = None
+    score: float | None = None
     summary: str
     metrics: WeeklyMetrics
     strengths: list[str] = Field(default_factory=list)
     weaknesses: list[str] = Field(default_factory=list)
     recommendations: list[dict] = Field(default_factory=list)
     next_week_mission: str
+    sufficient_data: bool = True
+    trades_needed: int = 0

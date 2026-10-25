@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -69,7 +69,7 @@ def _grade(score: float) -> str:
     return "F"
 
 
-def generate_weekly_review(
+def _generate_weekly_review_full(
     db,
     user_id: int,
 ) -> dict:
@@ -143,3 +143,18 @@ def generate_weekly_review(
             analysis
         ),
     }
+
+# --- Minimum-data gate: no grade without enough completed trades ---------
+from services.analysis.sufficiency import apply_review_gate  # noqa: E402
+
+
+def generate_weekly_review(
+    db,
+    user_id: int,
+) -> dict:
+    review = _generate_weekly_review_full(
+        db=db,
+        user_id=user_id,
+    )
+
+    return apply_review_gate(review, "week")

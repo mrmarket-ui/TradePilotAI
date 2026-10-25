@@ -1,4 +1,4 @@
-﻿from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field
 
 
 class MonthlyMetrics(BaseModel):
@@ -18,8 +18,8 @@ class MonthlyMetrics(BaseModel):
 class MonthlyReviewResponse(BaseModel):
     period_start: str
     period_end: str
-    grade: str
-    score: float
+    grade: str | None = None
+    score: float | None = None
     summary: str
     metrics: MonthlyMetrics
     trader_profile: str
@@ -27,3 +27,5 @@ class MonthlyReviewResponse(BaseModel):
     weaknesses: list[str] = Field(default_factory=list)
     recommendations: list[dict] = Field(default_factory=list)
     next_month_mission: str
+    sufficient_data: bool = True
+    trades_needed: int = 0

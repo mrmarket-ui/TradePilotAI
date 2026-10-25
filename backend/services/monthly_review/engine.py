@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from datetime import datetime, timezone
 from typing import Any
@@ -160,7 +160,7 @@ def _mission(analysis: dict) -> str:
     )
 
 
-def generate_monthly_review(
+def _generate_monthly_review_full(
     db,
     user_id: int,
 ) -> dict:
@@ -247,3 +247,18 @@ def generate_monthly_review(
             analysis
         ),
     }
+
+# --- Minimum-data gate: no grade without enough completed trades ---------
+from services.analysis.sufficiency import apply_review_gate  # noqa: E402
+
+
+def generate_monthly_review(
+    db,
+    user_id: int,
+) -> dict:
+    review = _generate_monthly_review_full(
+        db=db,
+        user_id=user_id,
+    )
+
+    return apply_review_gate(review, "month")

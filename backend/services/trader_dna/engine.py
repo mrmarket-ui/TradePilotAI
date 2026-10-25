@@ -6,6 +6,10 @@ from services.trader_dna.classifier import classify_trader
 from services.trader_dna.strengths import identify_strengths
 from services.trader_dna.weaknesses import identify_weaknesses
 from services.trader_dna.personality import identify_personality
+from services.analysis.sufficiency import (
+    MIN_TRADES_TRADER_DNA,
+    insufficient_trader_dna,
+)
 
 
 def _consistency_value(consistency: dict) -> float:
@@ -24,6 +28,11 @@ def analyze_trader_dna(
     psychology: dict,
     behavior: dict,
 ) -> dict:
+    total_trades = int(statistics.get("total_trades", 0) or 0)
+
+    if total_trades < MIN_TRADES_TRADER_DNA:
+        return insufficient_trader_dna(total_trades)
+
     normalized_consistency = {
         **consistency,
         "score": _consistency_value(consistency),
