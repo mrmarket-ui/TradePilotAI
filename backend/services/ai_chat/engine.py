@@ -1,4 +1,4 @@
-﻿"""
+"""
 TradePilot AI Chat Engine
 Conversation-aware version with LLM fallback.
 """
@@ -198,6 +198,18 @@ def _fallback_reply(
             0,
         )
 
+    if trader_dna.get("sufficient_data", True) is False:
+        needed = int(trader_dna.get("trades_needed") or 0)
+        more = (
+            f"{needed} more completed trades"
+            if needed > 0
+            else "more completed trades"
+        )
+        return (
+            "I don't have enough completed trades to profile you yet. "
+            f"Log {more} and I can give you a real Trader DNA and "
+            "consistency read. You can still ask about a specific trade."
+        )
     return (
         f"You are currently classified as a "
         f"{trader_dna.get('profile', 'Developing Trader')} "

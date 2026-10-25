@@ -1,4 +1,4 @@
-﻿from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from database.database import get_db
@@ -6,11 +6,13 @@ from dependencies.subscription import (
     require_paid_plan,
 )
 
-from models.trade import Trade
 from models.user import User
 
-from services.recommendations.engine import (
-    generate_recommendations,
+from services.analysis.pipeline import (
+    run_analysis_pipeline,
+)
+from services.analysis.sufficiency import (
+    MIN_TRADES_TRADER_DNA,
 )
 
 
@@ -27,52 +29,35 @@ def recommendations(
         require_paid_plan,
     ),
 ):
-    trades = (
-        db.query(Trade)
-        .filter(
-            Trade.user_id == current_user.id
-        )
-        .all()
+    """
+    Recommendations built from the user's real analysis.
+
+    This endpoint used to pass hard-coded placeholder values into the
+    recommendation engine, so every trader received the same advice.
+    """
+
+    result = run_analysis_pipeline(
+        db=db,
+        user_id=current_user.id,
     )
 
-    risk = {}
-    behavior = {}
-    psychology = {}
+    total_trades = len(result["trades"])
 
-    consistency = {
-        "score": {
-            "overall_score": 80,
-        },
-        "trend": "Stable",
-        "sessions": {},
-        "weekdays": {},
-        "symbols": {},
-        "strategies": {},
-    }
+    if total_trades < MIN_TRADES_TRADER_DNA:
+        return {
+            "total_trades": total_trades,
+            "recommendation_count": 0,
+            "recommendations": [],
+            "sufficient_data": False,
+            "trades_needed": MIN_TRADES_TRADER_DNA - total_trades,
+        }
 
-    strategies = {}
-
-    performance = {
-        "trend": "Stable",
-        "monthly_growth": 0,
-        "win_rate": 0,
-        "profit_factor": 0,
-        "consistency_score": 80,
-    }
-
-    generated = generate_recommendations(
-        risk,
-        behavior,
-        psychology,
-        consistency,
-        strategies,
-        performance,
-    )
+    generated = result["recommendations"]
 
     return {
-        "total_trades": len(trades),
-        "recommendation_count": len(
-            generated
-        ),
+        "total_trades": total_trades,
+        "recommendation_count": len(generated),
         "recommendations": generated,
+        "sufficient_data": True,
+        "trades_needed": 0,
     }
