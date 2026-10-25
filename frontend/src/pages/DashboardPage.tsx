@@ -26,6 +26,7 @@ import {
 } from "recharts"
 
 import { dashboard } from "@/api"
+import CurrentPlanText from "@/components/CurrentPlanText"
 
 
 type DashboardPayload = {
@@ -704,7 +705,7 @@ export default function DashboardPage() {
           </div>
 
           <p className="mt-3 text-xl font-semibold text-amber-300">
-            Premium · $29.99/month
+            <CurrentPlanText />
           </p>
         </div>
 
