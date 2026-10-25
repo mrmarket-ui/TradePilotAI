@@ -1,4 +1,4 @@
-﻿"""
+"""
 TradePilot AI unified dashboard service.
 
 Builds the live dashboard from:
@@ -343,7 +343,7 @@ def _extract_recommendations(
     return recommendations
 
 
-def get_dashboard(
+def _get_dashboard_full(
     db: Session,
     user_id: int,
 ) -> dict[str, Any]:
@@ -492,3 +492,39 @@ def get_dashboard(
                 timezone.utc
             ).isoformat(),
     }
+
+# --- Minimum-data gate: no scores without enough completed trades --------
+from services.analysis.sufficiency import (  # noqa: E402
+    MIN_TRADES_TRADER_DNA,
+)
+
+
+def get_dashboard(
+    db: Session,
+    user_id: int,
+) -> dict[str, Any]:
+    result = _get_dashboard_full(
+        db=db,
+        user_id=user_id,
+    )
+
+    summary = result.get("summary")
+
+    total = (
+        int(summary.get("total_trades", 0) or 0)
+        if isinstance(summary, dict)
+        else 0
+    )
+
+    if total >= MIN_TRADES_TRADER_DNA:
+        return result
+
+    overview = result.get("overview")
+
+    if isinstance(overview, dict):
+        overview["consistency_score"] = None
+        overview["discipline_score"] = None
+        overview["sufficient_data"] = False
+        overview["trades_needed"] = MIN_TRADES_TRADER_DNA - total
+
+    return result

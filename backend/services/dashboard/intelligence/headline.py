@@ -1,6 +1,8 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from typing import Any
+
+from services.analysis.sufficiency import NOT_ENOUGH_DATA
 
 
 def _to_dict(value: Any) -> dict:
@@ -25,6 +27,17 @@ def generate_headline(analysis: Any) -> dict:
     behavior = _to_dict(data.get("behavior"))
     performance = _to_dict(data.get("performance"))
     trader_dna = _to_dict(data.get("trader_dna"))
+    if trader_dna.get("profile") == NOT_ENOUGH_DATA:
+        needed = int(trader_dna.get("trades_needed") or 0)
+        message = (
+            f"Log {needed} more completed trades to unlock personalized insights."
+            if needed > 0
+            else "Log more completed trades to unlock personalized insights."
+        )
+        return {
+            "title": "Build Your Baseline",
+            "message": message,
+        }
 
     if behavior.get("revenge_trading"):
         return {

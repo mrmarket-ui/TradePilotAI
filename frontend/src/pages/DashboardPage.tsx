@@ -1,4 +1,4 @@
-﻿import {
+import {
   Activity,
   BrainCircuit,
   CheckCircle2,
@@ -361,7 +361,7 @@ export default function DashboardPage() {
             data.trader_dna?.profile ||
             `${intelligence.scorecard?.overall || 0}/100`
           }
-          helper={`Consistency ${overview.consistency_score || 0}/100`}
+          helper={overview.consistency_score == null ? "Consistency: not enough data yet" : `Consistency ${overview.consistency_score}/100`}
           icon={BrainCircuit}
           tone="amber"
         />
@@ -718,7 +718,7 @@ export default function DashboardPage() {
           </div>
 
           <p className="mt-3 text-xl font-semibold text-emerald-300">
-            {overview.discipline_score || 0}/100
+            {overview.discipline_score == null ? "Not enough data yet" : `${overview.discipline_score}/100`}
           </p>
         </div>
       </section>
