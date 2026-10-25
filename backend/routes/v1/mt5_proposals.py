@@ -11,6 +11,10 @@ from models.mt5_trade_proposal import MT5TradeProposal
 from models.strategy_profile import StrategyProfile
 from models.user import User
 from schemas.mt5_trade_proposal import MT5TradeProposalResponse
+from services.brokers.approval_rules import (
+    daily_trade_limit_reached,
+    proposal_rule_violation,
+)
 
 
 router = APIRouter(
@@ -180,6 +184,52 @@ def _validate_approval_safety(
             detail="A take profit is required.",
         )
 
+    violation = proposal_rule_violation(
+        proposal.direction,
+        proposal.entry_price,
+        proposal.stop_loss,
+        proposal.take_profit,
+        proposal.risk_percent,
+        strategy.max_risk_percent,
+    )
+
+    if violation:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=violation,
+        )
+
+    if strategy.max_trades_per_day is not None:
+        day_start = datetime.utcnow().replace(
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
+        )
+
+        approved_today = (
+            db.query(MT5TradeProposal)
+            .filter(
+                MT5TradeProposal.user_id == current_user.id,
+                MT5TradeProposal.broker_account_id
+                == proposal.broker_account_id,
+                MT5TradeProposal.id != proposal.id,
+                MT5TradeProposal.status.in_(
+                    ["approved", "executed"]
+                ),
+                MT5TradeProposal.approved_at >= day_start,
+            )
+            .count()
+        )
+
+        if daily_trade_limit_reached(
+            approved_today,
+            strategy.max_trades_per_day,
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="The strategy's daily trade limit has been reached.",
+            )
 
 @router.get(
     "",
@@ -301,8 +351,28 @@ def approve_trade_proposal(
         db,
     )
 
-    proposal.status = "approved"
-    proposal.approved_at = datetime.utcnow()
+    updated = (
+        db.query(MT5TradeProposal)
+        .filter(
+            MT5TradeProposal.id == proposal.id,
+            MT5TradeProposal.status == "pending",
+        )
+        .update(
+            {
+                "status": "approved",
+                "approved_at": datetime.utcnow(),
+            },
+            synchronize_session=False,
+        )
+    )
+
+    if updated != 1:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This trade proposal was already handled.",
+        )
 
     db.commit()
     db.refresh(proposal)
