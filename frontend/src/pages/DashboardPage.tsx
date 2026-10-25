@@ -713,7 +713,7 @@ export default function DashboardPage() {
             <ShieldCheck className="size-5 text-emerald-300" />
 
             <p className="font-medium">
-              Risk protection
+              Discipline score
             </p>
           </div>
 
