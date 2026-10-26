@@ -28,6 +28,20 @@ def _fallback_reply(
 ) -> str:
     text = message.lower().strip()
 
+    data_status = context.get("data_status") or {}
+
+    if data_status.get("sufficient_data") is False and not any(
+        keyword in text
+        for keyword in ("recent", "last 20", "review my trades")
+    ):
+        return (
+            "I don't have enough trades logged to give you a reliable "
+            f"read yet (you have {data_status.get('trades_logged', 0)}). "
+            f"Log {data_status.get('trades_needed', 0)} more and I can "
+            "assess your discipline, consistency and Trader DNA. You can "
+            "still ask me to review your recent trades."
+        )
+
     risk = context.get("risk", {})
     performance = context.get("performance", {})
     behavior = context.get("behavior", {})

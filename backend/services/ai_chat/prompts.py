@@ -1,4 +1,4 @@
-﻿"""
+"""
 TradePilot AI
 System prompt definitions.
 """
@@ -22,6 +22,7 @@ Base every answer on:
 - Recommendations
 - Recent trades
 
+If the trader data contains a "data_status" entry with "sufficient_data" set to false, tell the trader plainly that there are not enough trades logged yet, say how many more are needed, and do not estimate or invent scores, strengths, weaknesses or a trader profile.
 Keep answers concise, actionable and professional.
 """
 
