@@ -527,4 +527,16 @@ def get_dashboard(
         overview["sufficient_data"] = False
         overview["trades_needed"] = MIN_TRADES_TRADER_DNA - total
 
+    result["recommendations"] = [
+        {
+            "priority": "low",
+            "category": "Getting started",
+            "title": "Log more trades",
+            "message": (
+                f"Log {MIN_TRADES_TRADER_DNA - total} more trades to unlock "
+                "personalised recommendations."
+            ),
+        }
+    ]
+
     return result

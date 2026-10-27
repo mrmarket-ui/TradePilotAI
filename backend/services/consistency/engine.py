@@ -45,6 +45,8 @@ def analyze_consistency(
 
         improvement=trend,
 
+        trade_count=len(trades),
+
     )
 
     return {
