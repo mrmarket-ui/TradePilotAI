@@ -1,6 +1,6 @@
-﻿from datetime import datetime
+from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class TradeBase(BaseModel):
@@ -46,7 +46,22 @@ class TradeBase(BaseModel):
 
 
 class TradeCreate(TradeBase):
-    pass
+    @model_validator(mode="after")
+    def closed_not_before_opened(self):
+        if self.opened_at is not None and self.closed_at is not None:
+            try:
+                too_early = self.closed_at < self.opened_at
+            except TypeError:
+                # one time has a timezone and the other does not;
+                # they cannot be compared, so leave them alone
+                too_early = False
+
+            if too_early:
+                raise ValueError(
+                    "closed_at cannot be earlier than opened_at."
+                )
+
+        return self
 
 
 class TradeUpdate(BaseModel):
