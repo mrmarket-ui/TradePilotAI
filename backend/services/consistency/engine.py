@@ -6,6 +6,7 @@ from services.consistency.improvements import (
     analyze_monthly_progress,
     improvement_trend,
 )
+from services.analysis.sufficiency import timed_trade_count
 from services.consistency.score import (
     calculate_consistency_score,
 )
@@ -45,7 +46,7 @@ def analyze_consistency(
 
         improvement=trend,
 
-        trade_count=len(trades),
+        trade_count=timed_trade_count(trades),
 
     )
 

@@ -516,8 +516,22 @@ def get_dashboard(
         else 0
     )
 
-    if total >= MIN_TRADES_TRADER_DNA:
+    trader_dna = result.get("trader_dna")
+
+    behaviour_locked = (
+        isinstance(trader_dna, dict)
+        and trader_dna.get("sufficient_data") is False
+    )
+
+    if total >= MIN_TRADES_TRADER_DNA and not behaviour_locked:
         return result
+
+    needed = max(MIN_TRADES_TRADER_DNA - total, 0)
+
+    if behaviour_locked:
+        needed = max(needed, int(trader_dna.get("trades_needed") or 0))
+
+    missing_times = behaviour_locked and total >= MIN_TRADES_TRADER_DNA
 
     overview = result.get("overview")
 
@@ -525,17 +539,27 @@ def get_dashboard(
         overview["consistency_score"] = None
         overview["discipline_score"] = None
         overview["sufficient_data"] = False
-        overview["trades_needed"] = MIN_TRADES_TRADER_DNA - total
+        overview["trades_needed"] = needed
+
+    if missing_times:
+        title = "Add open and close times"
+        message = (
+            f"Add open and close times to {needed} more trades to unlock "
+            "personalised recommendations."
+        )
+    else:
+        title = "Log more trades"
+        message = (
+            f"Log {needed} more trades to unlock "
+            "personalised recommendations."
+        )
 
     result["recommendations"] = [
         {
             "priority": "low",
             "category": "Getting started",
-            "title": "Log more trades",
-            "message": (
-                f"Log {MIN_TRADES_TRADER_DNA - total} more trades to unlock "
-                "personalised recommendations."
-            ),
+            "title": title,
+            "message": message,
         }
     ]
 

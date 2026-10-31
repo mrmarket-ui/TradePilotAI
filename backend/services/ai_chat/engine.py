@@ -34,6 +34,15 @@ def _fallback_reply(
         keyword in text
         for keyword in ("recent", "last 20", "review my trades")
     ):
+        if data_status.get("reason") == "missing_times":
+            return (
+                "I have your trades, but too few of them have open and close "
+                "times for a reliable behaviour read. Add times to "
+                f"{data_status.get('trades_needed', 0)} more trades and I can "
+                "assess your discipline, consistency and Trader DNA. You can "
+                "still ask me to review your recent trades."
+            )
+
         return (
             "I don't have enough trades logged to give you a reliable "
             f"read yet (you have {data_status.get('trades_logged', 0)}). "

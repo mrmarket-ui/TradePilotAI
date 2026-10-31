@@ -1,4 +1,4 @@
-﻿"""
+"""
 TradePilot AI unified intelligence pipeline.
 
 Loads the trader's genuine market trades once and runs every
@@ -12,6 +12,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from services.analysis.loader import load_user_trades
+from services.analysis.sufficiency import timed_trade_count
 from services.analytics.engine import calculate_statistics_from_trades
 from services.analytics.risk import build_risk_summary
 from services.behavior.engine import analyze_behavior
@@ -134,6 +135,7 @@ def run_analysis_pipeline(
         consistency=consistency,
         psychology=psychology,
         behavior=behavior,
+        timed_trades=timed_trade_count(trades),
     )
 
     recommendations = generate_recommendations(

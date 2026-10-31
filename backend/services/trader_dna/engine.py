@@ -27,11 +27,15 @@ def analyze_trader_dna(
     consistency: dict,
     psychology: dict,
     behavior: dict,
+    timed_trades: int | None = None,
 ) -> dict:
     total_trades = int(statistics.get("total_trades", 0) or 0)
 
     if total_trades < MIN_TRADES_TRADER_DNA:
         return insufficient_trader_dna(total_trades)
+
+    if timed_trades is not None and timed_trades < MIN_TRADES_TRADER_DNA:
+        return insufficient_trader_dna(total_trades, timed_trades)
 
     normalized_consistency = {
         **consistency,

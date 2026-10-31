@@ -10,3 +10,4 @@ class TraderDNAAnalysis(BaseModel):
     sufficient_data: bool = True
     trades_recorded: int = 0
     trades_needed: int = 0
+    reason: str = ""

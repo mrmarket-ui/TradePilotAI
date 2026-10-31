@@ -43,13 +43,30 @@ def recommendations(
 
     total_trades = len(result["trades"])
 
-    if total_trades < MIN_TRADES_TRADER_DNA:
+    trader_dna = result.get("trader_dna")
+
+    behaviour_locked = (
+        isinstance(trader_dna, dict)
+        and trader_dna.get("sufficient_data") is False
+    )
+
+    if total_trades < MIN_TRADES_TRADER_DNA or behaviour_locked:
+        needed = max(MIN_TRADES_TRADER_DNA - total_trades, 0)
+
+        if behaviour_locked:
+            needed = max(needed, int(trader_dna.get("trades_needed") or 0))
+
         return {
             "total_trades": total_trades,
             "recommendation_count": 0,
             "recommendations": [],
             "sufficient_data": False,
-            "trades_needed": MIN_TRADES_TRADER_DNA - total_trades,
+            "trades_needed": needed,
+            "reason": (
+                trader_dna.get("reason", "few_trades")
+                if behaviour_locked
+                else "few_trades"
+            ),
         }
 
     generated = result["recommendations"]

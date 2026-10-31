@@ -13,7 +13,40 @@ MIN_TRADES_REVIEW = 3
 NOT_ENOUGH_DATA = "Not enough data yet"
 
 
-def insufficient_trader_dna(trades_recorded: int) -> dict:
+def timed_trade_count(trades) -> int:
+    """
+    Number of trades that have BOTH an open and a close time.
+
+    Behaviour analysis (revenge trading, holding time, sessions) needs real
+    times. Trades logged by hand without times still feed win rate and profit
+    factor, but they cannot show how the trader behaves.
+    """
+
+    count = 0
+
+    for trade in trades or []:
+        if (
+            getattr(trade, "opened_at", None) is not None
+            and getattr(trade, "closed_at", None) is not None
+        ):
+            count += 1
+
+    return count
+
+
+def insufficient_trader_dna(
+    trades_recorded: int,
+    timed_trades: int | None = None,
+) -> dict:
+    few_trades = trades_recorded < MIN_TRADES_TRADER_DNA
+
+    if few_trades or timed_trades is None:
+        reason = "few_trades"
+        needed = max(0, MIN_TRADES_TRADER_DNA - trades_recorded)
+    else:
+        reason = "missing_times"
+        needed = max(0, MIN_TRADES_TRADER_DNA - timed_trades)
+
     return {
         "profile": NOT_ENOUGH_DATA,
         "overall_score": 0.0,
@@ -22,7 +55,8 @@ def insufficient_trader_dna(trades_recorded: int) -> dict:
         "weaknesses": [],
         "sufficient_data": False,
         "trades_recorded": trades_recorded,
-        "trades_needed": max(0, MIN_TRADES_TRADER_DNA - trades_recorded),
+        "trades_needed": needed,
+        "reason": reason,
     }
 
 
