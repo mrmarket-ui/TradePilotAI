@@ -45,7 +45,7 @@ jobs:
           echo "::add-mask::$KEY"
           {
             echo "ENCRYPTION_KEY=$KEY"
-            echo "SECRET_KEY=ci-only-not-a-real-secret"
+            echo "SECRET_KEY=ci-only-not-a-real-secret-0123456789abcdef"
             echo "ALGORITHM=HS256"
             echo "ACCESS_TOKEN_EXPIRE_MINUTES=60"
             echo "DATABASE_URL=sqlite:///./ci_test.db"
