@@ -2,15 +2,14 @@
 TradePilot AI password rules.
 
 Follows current guidance: a sensible minimum length and a block-list of
-obvious passwords, instead of forcing symbols. The 72-byte ceiling exists
-because bcrypt ignores everything after 72 bytes, which would let two
-different long passwords look identical.
+obvious passwords, instead of forcing symbols. The length ceiling only stops
+absurdly large inputs from being sent to the password hasher.
 """
 
 from __future__ import annotations
 
 MIN_LENGTH = 10
-MAX_BYTES = 72
+MAX_LENGTH = 128
 
 _COMMON = {
     "password", "password1", "password123", "passw0rd", "letmein", "letmein123",
@@ -49,8 +48,8 @@ def validate_password(password: str, email: str = "") -> list[str]:
     if len(value) < MIN_LENGTH:
         problems.append(f"Use at least {MIN_LENGTH} characters.")
 
-    if len(value.encode("utf-8")) > MAX_BYTES:
-        problems.append("Use at most 72 bytes (about 72 characters).")
+    if len(value) > MAX_LENGTH:
+        problems.append(f"Use at most {MAX_LENGTH} characters.")
 
     if lowered.strip() in _COMMON or lowered.rstrip("0123456789!") in _COMMON:
         problems.append("That password is too common.")

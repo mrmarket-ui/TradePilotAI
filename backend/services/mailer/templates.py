@@ -189,3 +189,37 @@ def password_changed_mail(*, to: str, full_name: str | None) -> Mail:
         text=text,
         html=_layout("Password changed", "Your password was changed", body),
     )
+
+
+def existing_account_mail(*, to: str, full_name: str | None, login_url: str) -> Mail:
+    name = friendly_name(full_name, to)
+
+    text = (
+        f"Hi {name},\n\n"
+        f"Someone just tried to create a {BRAND} account with this email "
+        f"address, but you already have one.\n\n"
+        f"If it was you, simply sign in (or reset your password if you have "
+        f"forgotten it): {login_url}\n\n"
+        f"If it was not you, you can ignore this email. Nothing has changed "
+        f"and no one has access to your account.\n\n"
+        f"{_signature()}"
+    )
+
+    body = (
+        f"<p>Hi {escape(name)},</p>"
+        f"<p>Someone just tried to create a {BRAND} account with this email "
+        f"address, but you already have one.</p>"
+        f"<p>If it was you, sign in (or reset your password if you have "
+        f"forgotten it).</p>"
+        f"{_button('Go to sign in', login_url)}"
+        f"<p>If it was not you, you can ignore this email. Nothing has changed "
+        f"and no one has access to your account.</p>"
+        f"<p>{escape(_signature())}</p>"
+    )
+
+    return Mail(
+        to=to,
+        subject=f"Someone tried to register your {BRAND} email",
+        text=text,
+        html=_layout("You already have an account", "You already have an account", body),
+    )

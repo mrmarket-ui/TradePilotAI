@@ -184,7 +184,7 @@ def test_the_email_name_cannot_be_the_password():
     assert password_policy.validate_password("neliswa-2026-xyz", "ab@example.com") == []
 
 
-def test_passwords_longer_than_72_bytes_are_rejected():
-    assert any("72" in p for p in password_policy.validate_password("x1Y" * 30))
-    assert any("72" in p for p in password_policy.validate_password("é" * 40))
+def test_very_long_passwords_are_rejected_but_long_ones_are_fine():
+    assert any("128" in p for p in password_policy.validate_password("Qz7!" * 40))
     assert password_policy.validate_password("Qz7!" * 17) == []
+    assert password_policy.validate_password("Qz7!" * 32) == []

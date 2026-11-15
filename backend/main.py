@@ -11,6 +11,7 @@ from models.strategy_profile import StrategyProfile
 from models.strategy_source import StrategySource
 from models.ai_signal import AISignal, PaperTrade
 from models.partner import Partner, PartnerClick, SavedPartner
+from models.auth_security import AuthChallenge, AuthSecurity, PasswordResetToken  # noqa: F401
 # Core routes
 from routes.v1 import health
 from routes.v1 import auth

@@ -537,7 +537,7 @@ function AuthPanel({ mode }: { mode: Mode }) {
             email: challenge.email_hint,
           })}
           {mode === "register" &&
-            ` ${t("auth.welcomeSent", "We also sent you a welcome email.")}`}
+            ` ${t("auth.welcomeSent", "Your welcome email follows once you verify.")}`}
         </p>
 
         <CodeInput value={code} onChange={setCode} disabled={busy} />
