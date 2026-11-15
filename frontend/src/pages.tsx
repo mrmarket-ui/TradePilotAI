@@ -9,7 +9,7 @@ import {updatePreferences} from "@/api/profile/preferences"
 import {supportedCurrencies} from "@/utils/currency"
 import {dashboard,analysis,trades,addTrade,editTrade,removeTrade,reviewTrade,weekly,monthly,coach,createPayPalSubscription,mySubscription,cancelSubscription,registerUser} from "@/api"
 import type {Trade,TradePayload} from "@/types"
-export function Login(){
+export function LegacyLogin(){
   const {
     login,
     isAuthenticated,
@@ -277,7 +277,7 @@ export function Login(){
 }
 
 
-export function Register(){
+export function LegacyRegister(){
   const {
     login,
     isAuthenticated,
@@ -1416,3 +1416,4 @@ export function LegacyPartnersOld2(){
     </Page>
   )
 }
+export { LoginPage as Login, RegisterPage as Register } from '@/pages/auth/AuthPages'
