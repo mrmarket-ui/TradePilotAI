@@ -1,19 +1,37 @@
-﻿import {
-  Bell,
-  Menu,
-  Search,
-  Sparkles,
-} from "lucide-react"
+import { Menu } from "lucide-react"
+
+import { useAuth } from "@/Auth"
+import NotificationBell from "@/components/layout/NotificationBell"
 
 type TopbarProps = {
   userName: string
   onOpenNavigation: () => void
 }
 
+// The badge shows the plan the account really has.
+const PLAN_BADGE: Record<string, { label: string; className: string }> = {
+  free: {
+    label: "FREE",
+    className: "border-slate-400/20 bg-slate-400/[0.07] text-slate-300",
+  },
+  pro: {
+    label: "PRO",
+    className: "border-blue-400/20 bg-blue-400/[0.07] text-blue-300",
+  },
+  premium: {
+    label: "PREMIUM",
+    className: "border-amber-400/20 bg-amber-400/[0.07] text-amber-300",
+  },
+}
+
 export default function Topbar({
   userName,
   onOpenNavigation,
 }: TopbarProps) {
+  const { user } = useAuth()
+
+  const badge = PLAN_BADGE[(user?.plan ?? "").toLowerCase()]
+
   const initials = userName
     .split(" ")
     .map((part) => part[0])
@@ -46,33 +64,15 @@ export default function Topbar({
         </div>
 
         <div className="flex items-center gap-3">
-          <label className="hidden items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 md:flex">
-            <Search className="size-4 text-slate-500" />
+          <NotificationBell />
 
-            <input
-              type="search"
-              placeholder="Search TradePilot..."
-              className="w-48 bg-transparent py-2.5 text-sm outline-none placeholder:text-slate-600 xl:w-64"
-            />
-          </label>
-
-          <div className="hidden items-center gap-2 rounded-full border border-emerald-400/15 bg-emerald-400/[0.06] px-3 py-1.5 text-xs font-semibold text-emerald-300 sm:flex">
-            <Sparkles className="size-3.5" />
-            AI Online
-          </div>
-
-          <button
-            type="button"
-            className="relative grid size-11 place-items-center rounded-2xl border border-white/10 bg-white/[0.03] text-slate-300"
-          >
-            <Bell className="size-5" />
-
-            <span className="absolute right-2 top-2 size-2 rounded-full bg-blue-400" />
-          </button>
-
-          <div className="hidden rounded-full border border-amber-400/20 bg-amber-400/[0.07] px-3 py-1.5 text-xs font-semibold text-amber-300 sm:block">
-            PREMIUM
-          </div>
+          {badge && (
+            <div
+              className={`hidden rounded-full border px-3 py-1.5 text-xs font-semibold sm:block ${badge.className}`}
+            >
+              {badge.label}
+            </div>
+          )}
 
           <div className="grid size-11 place-items-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-semibold text-white shadow-lg shadow-blue-500/20">
             {initials || "TP"}

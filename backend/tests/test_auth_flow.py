@@ -24,6 +24,7 @@ from sqlalchemy.pool import StaticPool
 import models
 from database.database import Base, get_db
 from models.auth_security import AuthChallenge, AuthSecurity, PasswordResetToken
+from models.notification import Notification
 from models.user import User
 from services import auth_flow, auth_service
 from services.security import otp
@@ -97,6 +98,7 @@ def db_factory():
             AuthChallenge.__table__,
             PasswordResetToken.__table__,
             AuthSecurity.__table__,
+            Notification.__table__,
         ],
     )
     return sessionmaker(bind=engine, autoflush=False)

@@ -12,6 +12,7 @@ from models.strategy_source import StrategySource
 from models.ai_signal import AISignal, PaperTrade
 from models.partner import Partner, PartnerClick, SavedPartner
 from models.auth_security import AuthChallenge, AuthSecurity, PasswordResetToken  # noqa: F401
+from models.notification import Notification  # noqa: F401
 # Core routes
 from routes.v1 import health
 from routes.v1 import auth
@@ -49,6 +50,7 @@ from routes.v1 import monthly_review
 from routes.v1 import subscriptions
 from routes.v1 import paypal
 from routes.v1 import macro_intelligence
+from routes.v1 import notifications
 
 
 
@@ -91,6 +93,13 @@ app.include_router(
     auth.router,
     prefix="/api/v1",
     tags=["Authentication"],
+)
+
+# Notifications
+app.include_router(
+    notifications.router,
+    prefix="/api/v1",
+    tags=["Notifications"],
 )
 
 # Profile

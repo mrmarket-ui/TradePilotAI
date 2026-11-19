@@ -8,6 +8,7 @@ registered, passwords reset by email link, and every session ended at once.
 
 import os
 import secrets
+from datetime import timedelta
 
 from fastapi import (
     APIRouter,
@@ -26,6 +27,7 @@ from schemas.user import UserCreate
 
 from services import auth_flow
 from services.auth_flow import AuthError
+from services import notifications
 from services.auth_service import hash_password
 from services.dependencies import get_current_user
 from services.jwt_service import create_access_token
@@ -278,7 +280,8 @@ def verify_login(
     background: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
-    _limit(verify_ip, client_ip(request))
+    ip = client_ip(request)
+    _limit(verify_ip, ip)
 
     try:
         user_id = auth_flow.verify_challenge(db, body.challenge_id, body.code)
@@ -310,6 +313,29 @@ def verify_login(
                 app_url=frontend_url() + "/login",
             ),
         )
+        notifications.notify_safely(
+            db,
+            user.id,
+            "account.welcome",
+            "Welcome to TradePilot AI",
+            "Your account is ready. Start by logging a trade or exploring Macro Intelligence.",
+            link="/dashboard",
+            severity="success",
+        )
+
+    # A security alert for every new sign-in (repeats from the same address
+    # within a day are not shown again).
+    notifications.notify_safely(
+        db,
+        user.id,
+        "security.signin",
+        "New sign-in to your account",
+        f"A sign-in was completed from IP address {ip}. "
+        "If this was not you, reset your password right away.",
+        link="/settings",
+        severity="security",
+        dedupe_within=timedelta(hours=24),
+    )
 
     token = create_access_token(
         data={
@@ -398,6 +424,15 @@ def reset_password(
         send_email_safely,
         templates.password_changed_mail(to=user.email, full_name=user.full_name),
     )
+    notifications.notify_safely(
+        db,
+        user.id,
+        "security.password_changed",
+        "Your password was changed",
+        "You were signed out everywhere. If this was not you, reset your password again and contact support.",
+        link="/settings",
+        severity="security",
+    )
 
     return {"message": "Password updated. Please sign in again."}
 
@@ -408,6 +443,15 @@ def logout_everywhere(
     db: Session = Depends(get_db),
 ):
     auth_flow.sign_out_everywhere(db, current_user.id)
+    notifications.notify_safely(
+        db,
+        current_user.id,
+        "security.signed_out_everywhere",
+        "You signed out of every device",
+        "Every active session was ended. Sign in again to continue.",
+        link="/settings",
+        severity="security",
+    )
 
     return {"message": "You were signed out everywhere."}
 
